@@ -1,1 +1,258 @@
-:root {\n    --bg-color: #1a1a2e;\n    --panel-bg: #16213e;\n    --text-color: #e94560;\n    --text-light: #fff;\n    --common: #b0c4de;\n    --uncommon: #32cd32;\n    --rare: #1e90ff;\n    --epic: #8a2be2;\n    --mythic: #ff8c00;\n    --up: #4caf50;\n    --down: #f44336;\n}\n\n* {\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n}\n\nbody {\n    background-color: var(--bg-color);\n    color: var(--text-light);\n    padding: 20px;\n}\n\n.container {\n    max-width: 1200px;\n    margin: 0 auto;\n}\n\nheader {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    background-color: var(--panel-bg);\n    padding: 20px;\n    border-radius: 10px;\n    margin-bottom: 20px;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.3);\n}\n\nh1 {\n    color: var(--text-color);\n}\n\n.stats {\n    display: flex;\n    gap: 20px;\n}\n\n.stat-box {\n    background: rgba(0,0,0,0.2);\n    padding: 10px 15px;\n    border-radius: 8px;\n    font-size: 1.2rem;\n    font-weight: bold;\n}\n\n#balance { color: #4caf50; }\n#net-worth { color: #2196f3; }\n\nmain {\n    display: grid;\n    grid-template-columns: 2fr 1fr;\n    gap: 20px;\n}\n\nsection {\n    background-color: var(--panel-bg);\n    padding: 20px;\n    border-radius: 10px;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.3);\n}\n\nh2 {\n    margin-bottom: 15px;\n    border-bottom: 2px solid var(--text-color);\n    padding-bottom: 5px;\n}\n\n.market-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));\n    gap: 15px;\n}\n\n.item-card {\n    background: rgba(0,0,0,0.2);\n    padding: 15px;\n    border-radius: 8px;\n    display: flex;\n    flex-direction: column;\n    gap: 10px;\n    transition: transform 0.2s;\n}\n\n.item-card:hover {\n    transform: translateY(-2px);\n}\n\n.item-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    font-weight: bold;\n    font-size: 1.1rem;\n}\n\n.rarity-common { color: var(--common); }\n.rarity-uncommon { color: var(--uncommon); }\n.rarity-rare { color: var(--rare); }\n.rarity-epic { color: var(--epic); }\n.rarity-mythic { color: var(--mythic); }\n\n.item-price {\n    font-size: 1.5rem;\n    display: flex;\n    align-items: center;\n    gap: 10px;\n}\n\n.trend-up { color: var(--up); }\n.trend-down { color: var(--down); }\n\n.actions {\n    display: flex;\n    gap: 10px;\n}\n\nbutton {\n    flex: 1;\n    padding: 8px;\n    border: none;\n    border-radius: 5px;\n    cursor: pointer;\n    font-weight: bold;\n    transition: opacity 0.2s;\n}\n\nbutton:hover {\n    opacity: 0.8;\n}\n\nbutton:disabled {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n\n.btn-buy { background-color: #4caf50; color: white; }\n.btn-sell { background-color: #f44336; color: white; }\n\n.inventory-list {\n    display: flex;\n    flex-direction: column;\n    gap: 10px;\n}\n\n.inv-item {\n    background: rgba(0,0,0,0.2);\n    padding: 10px;\n    border-radius: 8px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.inv-details {\n    display: flex;\n    flex-direction: column;\n}\n\n.inv-name { font-weight: bold; }\n.inv-amount { font-size: 0.9rem; color: #aaa; }\n.inv-profit { font-size: 0.9rem; }\n\n@media (max-width: 768px) {\n    main {\n        grid-template-columns: 1fr;\n    }\n    .stats {\n        flex-direction: column;\n        gap: 10px;\n    }\n}\n
+:root {
+    --bg-color: #0f172a;
+    --panel-bg: #1e293b;
+    --text-color: #38bdf8;
+    --text-light: #f8fafc;
+    --text-muted: #94a3b8;
+    --common: #cbd5e1;
+    --uncommon: #4ade80;
+    --rare: #60a5fa;
+    --epic: #c084fc;
+    --mythic: #fbbf24;
+    --up: #22c55e;
+    --down: #ef4444;
+    --border-color: #334155;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-light);
+    padding: 20px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--panel-bg);
+    padding: 24px 32px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color);
+}
+
+h1 {
+    color: var(--text-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.stats {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-box {
+    background: rgba(15, 23, 42, 0.6);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border: 1px solid var(--border-color);
+}
+
+.stat-box span:first-child {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+#balance { color: var(--up); font-size: 1.25rem; }
+#net-worth { color: var(--rare); font-size: 1.25rem; }
+#tick-timer { color: var(--text-light); font-size: 1.25rem; }
+
+main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+section {
+    background-color: var(--panel-bg);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+h2 {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1.4rem;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.item-card {
+    background: rgba(15, 23, 42, 0.4);
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+}
+
+.item-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-muted);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-weight: 600;
+    font-size: 1.15rem;
+}
+
+.rarity-common { color: var(--common); }
+.rarity-uncommon { color: var(--uncommon); }
+.rarity-rare { color: var(--rare); }
+.rarity-epic { color: var(--epic); }
+.rarity-mythic { color: var(--mythic); text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+
+.item-price {
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-up { color: var(--up); }
+.trend-down { color: var(--down); }
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+}
+
+button {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+button:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+.btn-buy { background-color: var(--up); color: white; }
+.btn-sell { background-color: var(--down); color: white; }
+
+.inventory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.inv-item {
+    background: rgba(15, 23, 42, 0.4);
+    padding: 16px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.inv-item:hover {
+    border-color: var(--text-muted);
+}
+
+.inv-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.inv-name { 
+    font-weight: 600; 
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+}
+
+.inv-amount { 
+    font-size: 0.9rem; 
+    color: var(--text-muted); 
+    font-variant-numeric: tabular-nums;
+}
+
+.inv-profit { 
+    font-size: 0.95rem; 
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+    header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: stretch;
+    }
+    .stats {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 600px) {
+    .stats {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .stat-box {
+        align-items: center;
+    }
+}

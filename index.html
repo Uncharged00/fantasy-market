@@ -1,1 +1,50 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Fantasy Market Broker</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <div class="container">\n        <header>\n            <h1>Fantasy Market Broker</h1>\n            <div class="stats">\n                <div class="stat-box">\n                    <span>Balance:</span>\n                    <span id="balance">500.00 €</span>\n                </div>\n                <div class="stat-box">\n                    <span>Net Worth:</span>\n                    <span id="net-worth">500.00 €</span>\n                </div>\n                <div class="stat-box">\n                    <span>Next Tick:</span>\n                    <span id="tick-timer">5s</span>\n                </div>\n            </div>\n        </header>\n\n        <main>\n            <section class="market-section">\n                <h2>Market</h2>\n                <div class="market-grid" id="market">\n                    <!-- Market items will be injected here -->\n                </div>\n            </section>\n\n            <section class="inventory-section">\n                <h2>Your Inventory</h2>\n                <div class="inventory-list" id="inventory">\n                    <!-- Inventory items will be injected here -->\n                </div>\n            </section>\n        </main>\n    </div>\n    <script src="script.js"></script>\n</body>\n</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Market Broker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Fantasy Market Broker</h1>
+            <div class="stats">
+                <div class="stat-box">
+                    <span>Balance</span>
+                    <span id="balance">500.00 €</span>
+                </div>
+                <div class="stat-box">
+                    <span>Net Worth</span>
+                    <span id="net-worth">500.00 €</span>
+                </div>
+                <div class="stat-box">
+                    <span>Next Tick</span>
+                    <span id="tick-timer">5s</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="market-section">
+                <h2>Market</h2>
+                <div class="market-grid" id="market">
+                    <!-- Market items will be injected here -->
+                </div>
+            </section>
+
+            <section class="inventory-section">
+                <h2>Your Inventory</h2>
+                <div class="inventory-list" id="inventory">
+                    <!-- Inventory items will be injected here -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
