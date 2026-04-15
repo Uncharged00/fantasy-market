@@ -46,10 +46,10 @@
         .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
         .balance { font-size: 1.8rem; font-weight: bold; color: var(--success); font-family: monospace; }
 
-        /* Main Layout */
+        /* 3-Column Layout */
         .container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1.5fr 1fr; /* Market | Chart | Inventory */
             gap: 20px;
             flex: 1;
             min-height: 0;
@@ -100,6 +100,7 @@
         
         .price-info { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
         .price { font-family: monospace; font-size: 1.2rem; font-weight: bold; }
+        .text-muted { color: var(--muted); font-size: 1rem; }
         
         /* Buttons */
         button {
@@ -119,10 +120,7 @@
         .btn-sell:hover { background: #059669; }
 
         /* Chart Area */
-        .right-column { display: flex; flex-direction: column; gap: 20px; }
-        .chart-wrapper { flex: 0.8; display: flex; flex-direction: column; }
-        .inventory-wrapper { flex: 1.2; display: flex; flex-direction: column; }
-        
+        .chart-wrapper { display: flex; flex-direction: column; }
         canvas {
             width: 100%;
             height: 100%;
@@ -154,21 +152,17 @@
     <div class="container">
         <div class="panel">
             <h2>Live Market</h2>
-            <div class="list-container" id="marketList">
-                </div>
+            <div class="list-container" id="marketList"></div>
         </div>
 
-        <div class="right-column">
-            <div class="panel chart-wrapper">
-                <h2 id="chartTitle">Market History: Select an item</h2>
-                <canvas id="marketChart"></canvas>
-            </div>
+        <div class="panel chart-wrapper">
+            <h2 id="chartTitle">Market History</h2>
+            <canvas id="marketChart"></canvas>
+        </div>
 
-            <div class="panel inventory-wrapper">
-                <h2>Your Portfolio</h2>
-                <div class="list-container" id="inventoryList">
-                    </div>
-            </div>
+        <div class="panel">
+            <h2>Your Portfolio</h2>
+            <div class="list-container" id="inventoryList"></div>
         </div>
     </div>
 
@@ -246,18 +240,13 @@
         function marketTick() {
             items.forEach(item => {
                 const config = rarities[item.rarity];
-                
-                // Random walk percentage change
                 let change = (Math.random() * config.volatility * 2) - config.volatility;
                 
-                // Mean reversion (pushes price back towards base price if it drifts too far)
                 if (item.currentPrice > item.basePrice * 1.5) change -= config.meanReversion;
                 if (item.currentPrice < item.basePrice * 0.5) change += config.meanReversion;
                 
-                // Apply change and ensure it doesn't drop below 1€
                 item.currentPrice = Math.max(1, item.currentPrice * (1 + change));
                 
-                // Update history array
                 item.history.push(item.currentPrice);
                 if (item.history.length > historyLength) {
                     item.history.shift();
@@ -308,11 +297,11 @@
                     div.className = 'item-card';
                     div.innerHTML = `
                         <div class="item-info">
-                            <span class="item-name r-${item.rarity}">${item.name} <span style="color:white; margin-left:10px;">x${item.owned}</span></span>
-                            <span class="item-rarity r-${item.rarity}">Avg Value: ${formatMoney(item.currentPrice * item.owned)}</span>
+                            <span class="item-name r-${item.rarity}">${item.name} <span style="color:white; margin-left:5px;">x${item.owned}</span></span>
+                            <span class="item-rarity r-${item.rarity}">Total: ${formatMoney(item.currentPrice * item.owned)}</span>
                         </div>
                         <div class="price-info">
-                            <span class="price text-muted">${formatMoney(item.currentPrice)} ea</span>
+                            <span class="price text-muted">${formatMoney(item.currentPrice)}</span>
                             <button class="btn-sell" onclick="sellItem(${item.id})">SELL</button>
                         </div>
                     `;
@@ -321,7 +310,7 @@
             });
 
             if (!hasItems) {
-                container.innerHTML = `<div style="color: var(--muted); text-align: center; padding-top: 20px;">Your portfolio is empty. Buy items to start investing!</div>`;
+                container.innerHTML = `<div style="color: var(--muted); text-align: center; padding-top: 20px;">Your portfolio is empty.<br><br>Buy items from the market!</div>`;
             }
         }
 
@@ -332,48 +321,83 @@
             const ctx = canvas.getContext('2d');
             const item = items[selectedItemId];
             
-            // Adjust canvas to container size
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight - 40; // Minus title height
+            // Adjust canvas resolution for crisp lines
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.parentElement.getBoundingClientRect();
             
-            const w = canvas.width;
-            const h = canvas.height;
+            // Subtract title height (~40px) and padding from canvas calculation
+            canvas.width = (rect.width - 40) * dpr; 
+            canvas.height = (rect.height - 80) * dpr;
+            
+            ctx.scale(dpr, dpr);
+            
+            const w = rect.width - 40;
+            const h = rect.height - 80;
             const history = item.history;
             
             // Clear canvas
             ctx.clearRect(0, 0, w, h);
             
-            // Find min/max for scaling
+            // Margins to prevent clipping and make room for text
+            const rightMargin = 70;
+            const topMargin = 20;
+            const bottomMargin = 20;
+            const chartW = w - rightMargin;
+            const chartH = h - topMargin - bottomMargin;
+            
             let min = Math.min(...history);
             let max = Math.max(...history);
             
-            // Add padding to min/max so lines don't hit the absolute top/bottom edges
-            let padding = (max - min) * 0.1;
-            if (padding === 0) padding = 5; // Fallback if line is completely flat
+            // Dynamic padding so graph doesn't hug the top/bottom lines
+            let padding = (max - min) * 0.15;
+            if (padding === 0) padding = 5; 
             min -= padding;
             max += padding;
-
             const range = max - min;
+
+            // 1. Draw Grid Lines and Labels (Graph Paper Effect)
+            ctx.fillStyle = '#94a3b8'; // Label color
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.strokeStyle = '#334155'; // Grid line color
+            ctx.lineWidth = 1;
+
+            const gridLines = 5;
+            for (let i = 0; i <= gridLines; i++) {
+                const yPos = topMargin + chartH - (i / gridLines) * chartH;
+                const value = min + (i / gridLines) * range;
+
+                // Draw horizontal line
+                ctx.beginPath();
+                ctx.moveTo(0, yPos);
+                ctx.lineTo(chartW, yPos);
+                ctx.stroke();
+
+                // Draw price label
+                ctx.fillText(value.toFixed(2) + ' €', chartW + 8, yPos);
+            }
             
-            // Draw Line
+            // 2. Draw Market Line
             ctx.beginPath();
             ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 3;
             ctx.lineJoin = 'round';
 
             for (let i = 0; i < history.length; i++) {
-                const x = (i / (historyLength - 1)) * w;
-                const y = h - ((history[i] - min) / range) * h;
+                const x = (i / (historyLength - 1)) * chartW;
+                // Calculate Y within our safe chartH margins
+                const y = topMargin + chartH - ((history[i] - min) / range) * chartH;
                 
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
 
-            // Gradient Fill
-            ctx.lineTo(w, h);
-            ctx.lineTo(0, h);
-            const gradient = ctx.createLinearGradient(0, 0, 0, h);
+            // 3. Draw Gradient Fill below line
+            ctx.lineTo(chartW, topMargin + chartH);
+            ctx.lineTo(0, topMargin + chartH);
+            const gradient = ctx.createLinearGradient(0, topMargin, 0, topMargin + chartH);
             gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
             gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
             ctx.fillStyle = gradient;
@@ -381,7 +405,7 @@
         }
 
         // --- Boot the game ---
-        selectItem(0); // Select first item to initialize titles
+        selectItem(0); 
         updateUI();
         
         // Market updates every 2 seconds
