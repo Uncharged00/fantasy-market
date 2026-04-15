@@ -69,7 +69,7 @@
             padding: 10px;
             cursor: pointer;
             display: grid;
-            grid-template-columns: 1fr 100px 70px; /* Kept same grid structure */
+            grid-template-columns: 1fr 100px 70px;
             align-items: center;
             gap: 10px;
         }
@@ -80,7 +80,6 @@
         .item-name { font-weight: bold; font-size: 0.9rem; }
         .item-stock { font-size: 0.7rem; color: var(--muted); }
 
-        /* Cell showing the % Change now */
         .change-cell-val { text-align: center; font-size: 0.9rem; font-weight: bold; }
 
         button {
@@ -159,7 +158,8 @@
                 money -= item.currentPrice;
                 item.owned++;
                 item.stock--;
-                item.currentPrice *= 1.08; 
+                // Reduced trade impact to 0.5%
+                item.currentPrice *= 1.005; 
                 updateUI();
             }
         }
@@ -170,20 +170,33 @@
                 money += item.currentPrice;
                 item.owned--;
                 item.stock++;
-                item.currentPrice *= 0.92;
+                // Reduced trade impact to 0.5%
+                item.currentPrice *= 0.995;
                 updateUI();
             }
         }
 
         function marketTick() {
             items.forEach(item => {
-                let volatility = { "Common": 0.01, "Uncommon": 0.03, "Rare": 0.06, "Epic": 0.12, "Mythic": 0.25 }[item.rarity];
+                // Heavily reduced volatility for smoother price action
+                let volatility = { 
+                    "Common": 0.002, 
+                    "Uncommon": 0.005, 
+                    "Rare": 0.01, 
+                    "Epic": 0.015, 
+                    "Mythic": 0.03 
+                }[item.rarity];
+                
                 let drift = (Math.random() * volatility * 2 - volatility);
+                
                 const stockRatio = item.stock / item.maxStock;
-                if(stockRatio < 0.25) drift += 0.03; 
+                // Scarcity rule only triggers if stock is nearly empty
+                if(stockRatio < 0.10) drift += 0.005; 
 
                 item.currentPrice *= (1 + drift);
-                if(item.currentPrice < 1) item.currentPrice = 1;
+                
+                // Keep price within a reasonable floor
+                if(item.currentPrice < item.basePrice * 0.2) item.currentPrice = item.basePrice * 0.2;
 
                 item.history.push(item.currentPrice);
                 if(item.history.length > historyLength) item.history.shift();
@@ -191,7 +204,6 @@
             updateUI();
         }
 
-        // SWAPPED: Now calculates and displays Percentage Change instead of value
         function renderMarket() {
             const list = document.getElementById('marketList');
             list.innerHTML = '';
@@ -259,7 +271,7 @@
 
             let min = Math.min(...item.history);
             let max = Math.max(...item.history);
-            let range = (max - min) || 10;
+            let range = (max - min) || 1;
             min -= range * 0.1;
             max += range * 0.1;
             range = max - min;
