@@ -80,8 +80,9 @@
         .item-name { font-weight: bold; font-size: 0.9rem; }
         .item-stock { font-size: 0.7rem; color: var(--muted); }
 
-        .price-cell { text-align: right; font-size: 0.85rem; }
-        .change-pct { font-size: 0.7rem; }
+        /* FIXED: Price back on the left, change on right */
+        .price-cell { text-align: left; font-size: 0.9rem; font-weight: bold; }
+        .change-cell { text-align: right; font-size: 0.7rem; }
 
         button {
             background: var(--accent);
@@ -98,14 +99,12 @@
         .btn-sell { background: #334155; border: 1px solid var(--border); }
         .btn-sell:hover { background: var(--danger); }
 
-        /* Chart */
         .chart-container { flex: 1; position: relative; margin-top: 10px; }
-        canvas { width: 100%; height: 100%; background: #000; cursor: crosshair; }
+        canvas { width: 100%; height: 100%; background: #000; }
 
         .trend-up { color: var(--success); }
         .trend-down { color: var(--danger); }
         
-        /* Rarities */
         .r-Common { color: #94a3b8; }
         .r-Uncommon { color: #4ade80; }
         .r-Rare { color: #60a5fa; }
@@ -122,7 +121,7 @@
 
     <div class="container">
         <div class="panel">
-            <h2>Market Volatility</h2>
+            <h2>Market Prices</h2>
             <div class="list-container" id="marketList"></div>
         </div>
 
@@ -161,8 +160,7 @@
                 money -= item.currentPrice;
                 item.owned++;
                 item.stock--;
-                // RULE: Buying reduces supply, increasing price
-                item.currentPrice *= 1.08; 
+                item.currentPrice *= 1.08; // Rule: Demand increases price
                 updateUI();
             }
         }
@@ -173,8 +171,7 @@
                 money += item.currentPrice;
                 item.owned--;
                 item.stock++;
-                // RULE: Selling increases supply, decreasing price
-                item.currentPrice *= 0.92;
+                item.currentPrice *= 0.92; // Rule: Supply decreases price
                 updateUI();
             }
         }
@@ -184,7 +181,7 @@
                 let volatility = { "Common": 0.01, "Uncommon": 0.03, "Rare": 0.06, "Epic": 0.12, "Mythic": 0.25 }[item.rarity];
                 let drift = (Math.random() * volatility * 2 - volatility);
                 
-                // RULE: Scarcity Premium (Stock < 25% causes price spikes)
+                // Rule: Scarcity Premium
                 const stockRatio = item.stock / item.maxStock;
                 if(stockRatio < 0.25) drift += 0.03; 
 
@@ -211,14 +208,15 @@
                 card.innerHTML = `
                     <div class="name-cell">
                         <span class="item-name r-${item.rarity}">${item.name}</span>
-                        <span class="item-stock">UNIT_AVAIL: ${item.stock}</span>
+                        <span class="item-stock">STOCK: ${item.stock}</span>
                     </div>
-                    <div class="price-cell">
-                        <div class="${color}">${item.currentPrice.toFixed(2)}€</div>
-                        <div class="change-pct ${color}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</div>
+                    <div class="price-cell ${color}">
+                        ${item.currentPrice.toFixed(2)}€
                     </div>
-                    <button onclick="buyItem(${item.id}); event.stopPropagation();" 
-                        ${(money < item.currentPrice || item.stock <= 0) ? 'disabled' : ''}>ACQUIRE</button>
+                    <div class="change-cell">
+                        <button onclick="buyItem(${item.id}); event.stopPropagation();" 
+                            ${(money < item.currentPrice || item.stock <= 0) ? 'disabled' : ''}>BUY</button>
+                    </div>
                 `;
                 list.appendChild(card);
             });
@@ -234,9 +232,9 @@
                 card.innerHTML = `
                     <div class="name-cell">
                         <span class="item-name r-${item.rarity}">${item.name} (x${item.owned})</span>
-                        <span class="item-stock">VALUE: ${(item.currentPrice * item.owned).toFixed(2)}€</span>
+                        <span class="item-stock">TOTAL: ${(item.currentPrice * item.owned).toFixed(2)}€</span>
                     </div>
-                    <button class="btn-sell" onclick="sellItem(${item.id})">LIQUIDATE</button>
+                    <button class="btn-sell" onclick="sellItem(${item.id})">SELL</button>
                 `;
                 list.appendChild(card);
             });
@@ -247,7 +245,7 @@
             const ctx = canvas.getContext('2d');
             const item = items[selectedId];
             
-            document.getElementById('chartTitle').innerText = `${item.name} // CURR_VAL: ${item.currentPrice.toFixed(2)}€`;
+            document.getElementById('chartTitle').innerText = `${item.name} - LIVE: ${item.currentPrice.toFixed(2)}€`;
             
             const dpr = window.devicePixelRatio || 1;
             canvas.width = canvas.offsetWidth * dpr;
@@ -256,7 +254,7 @@
             
             const w = canvas.offsetWidth;
             const h = canvas.offsetHeight;
-            const paddingRight = 80;
+            const paddingRight = 85;
             const chartW = w - paddingRight;
 
             ctx.clearRect(0, 0, w, h);
@@ -268,29 +266,22 @@
             max += range * 0.1;
             range = max - min;
 
-            // DRAW PRICE LABELS (The "Graph Paper" markings)
+            // Graph Paper Lines & Price Labels
             ctx.strokeStyle = '#1e293b';
             ctx.fillStyle = '#64748b';
             ctx.font = '10px monospace';
-            ctx.lineWidth = 1;
 
             for(let i=0; i<=5; i++) {
                 const y = h - (i/5) * h;
-                const priceLabel = (min + (i/5) * range).toFixed(2);
-                
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(chartW, y);
-                ctx.stroke();
-                
-                ctx.fillText(priceLabel + " €", chartW + 5, y + 3);
+                const p = (min + (i/5) * range).toFixed(2);
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartW, y); ctx.stroke();
+                ctx.fillText(p + "€", chartW + 5, y + 3);
             }
 
-            // DRAW THE LINE
+            // Price Line
             ctx.beginPath();
             ctx.lineWidth = 2;
             ctx.strokeStyle = item.currentPrice >= item.history[0] ? "#00ffaa" : "#ff4466";
-            
             item.history.forEach((val, i) => {
                 const x = (i / (historyLength - 1)) * chartW;
                 const y = h - ((val - min) / range) * h;
@@ -298,14 +289,12 @@
             });
             ctx.stroke();
 
-            // AREA FILL
-            ctx.lineTo(chartW, h);
-            ctx.lineTo(0, h);
+            // Fill
+            ctx.lineTo(chartW, h); ctx.lineTo(0, h);
             const grad = ctx.createLinearGradient(0,0,0,h);
             grad.addColorStop(0, ctx.strokeStyle + "33");
             grad.addColorStop(1, "transparent");
-            ctx.fillStyle = grad;
-            ctx.fill();
+            ctx.fillStyle = grad; ctx.fill();
         }
 
         function updateUI() {
