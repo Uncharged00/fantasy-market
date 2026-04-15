@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Mogul: Fantasy Trader</title>
+    <title>Market Mogul: Supply & Demand</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -18,7 +18,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -30,26 +30,22 @@
             overflow: hidden;
         }
 
-        /* Header */
         .header {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 15px 30px;
+            padding: 10px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
         .balance { font-size: 1.8rem; font-weight: bold; color: var(--success); font-family: monospace; }
 
-        /* 3-Column Layout */
         .container {
             display: grid;
-            grid-template-columns: 1fr 1.5fr 1fr; /* Market | Chart | Inventory */
+            grid-template-columns: 350px 1fr 350px;
             gap: 20px;
             flex: 1;
             min-height: 0;
@@ -59,105 +55,80 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .panel h2 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--muted); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
+        .panel h2 { margin-top: 0; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
-        /* Lists */
-        .list-container {
-            overflow-y: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-right: 5px;
-        }
-
-        .list-container::-webkit-scrollbar { width: 8px; }
-        .list-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .list-container { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
 
         .item-card {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(15, 23, 42, 0.5);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.2s;
         }
 
         .item-card:hover, .item-card.active { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
+
+        .card-row { display: flex; justify-content: space-between; align-items: center; }
         
-        .item-info { display: flex; flex-direction: column; gap: 4px; }
-        .item-name { font-weight: 600; font-size: 1.1rem; }
-        .item-rarity { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .price-info { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-        .price { font-family: monospace; font-size: 1.2rem; font-weight: bold; }
-        .text-muted { color: var(--muted); font-size: 1rem; }
-        
-        /* Buttons */
+        .name-stack { display: flex; flex-direction: column; }
+        .item-name { font-weight: bold; font-size: 0.95rem; }
+        .item-stock { font-size: 0.75rem; color: var(--muted); }
+
+        .price-stack { text-align: right; }
+        .change-val { font-family: monospace; font-weight: bold; font-size: 0.9rem; }
+        .change-pct { font-size: 0.75rem; }
+
         button {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            font-size: 0.8rem;
         }
-        button:hover { background: var(--accent-hover); }
-        button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
-        
-        .btn-sell { background: var(--success); }
-        .btn-sell:hover { background: #059669; }
 
-        /* Chart Area */
-        .chart-wrapper { display: flex; flex-direction: column; }
-        canvas {
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-top: 10px;
-        }
+        button:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+        .btn-sell { background: var(--success); }
+
+        canvas { flex: 1; background: #000; border-radius: 8px; margin-top: 10px; }
 
         .trend-up { color: var(--success); }
         .trend-down { color: var(--danger); }
-
-        /* Rarities */
-        .r-Common { color: #cbd5e1; }
+        
+        /* Rarity colors */
+        .r-Common { color: #94a3b8; }
         .r-Uncommon { color: #4ade80; }
         .r-Rare { color: #60a5fa; }
         .r-Epic { color: #c084fc; }
-        .r-Mythic { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.4); }
-
+        .r-Mythic { color: #fbbf24; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Fantasy Trader</h1>
+        <h1 style="font-size: 1.2rem;">EXCHANGE TERMINAL v2.0</h1>
         <div class="balance" id="balanceDisplay">500.00 €</div>
     </div>
 
     <div class="container">
         <div class="panel">
-            <h2>Live Market</h2>
+            <h2>Live Market (Volatility & Change)</h2>
             <div class="list-container" id="marketList"></div>
         </div>
 
-        <div class="panel chart-wrapper">
+        <div class="panel">
             <h2 id="chartTitle">Market History</h2>
             <canvas id="marketChart"></canvas>
+            <div id="chartStats" style="margin-top: 10px; font-size: 0.8rem; display: flex; justify-content: space-around; color: var(--muted);"></div>
         </div>
 
         <div class="panel">
@@ -167,253 +138,188 @@
     </div>
 
     <script>
-        // --- Game State ---
         let money = 500.00;
-        let selectedItemId = 0;
-        const historyLength = 30; // Ticks on the chart
+        let selectedId = 0;
+        const historyLength = 40;
 
-        // Rarity affects price volatility
-        const rarities = {
-            "Common": { volatility: 0.03, meanReversion: 0.01 },
-            "Uncommon": { volatility: 0.06, meanReversion: 0.015 },
-            "Rare": { volatility: 0.10, meanReversion: 0.02 },
-            "Epic": { volatility: 0.18, meanReversion: 0.025 },
-            "Mythic": { volatility: 0.30, meanReversion: 0.03 }
-        };
-
-        // Initialize items
         const items = [
-            { id: 0, name: "Rusty Iron Sword", rarity: "Common", basePrice: 15, currentPrice: 15, owned: 0, history: [] },
-            { id: 1, name: "Leather Tunic", rarity: "Common", basePrice: 35, currentPrice: 35, owned: 0, history: [] },
-            { id: 2, name: "Steel Broadshield", rarity: "Uncommon", basePrice: 120, currentPrice: 120, owned: 0, history: [] },
-            { id: 3, name: "Elven Longbow", rarity: "Rare", basePrice: 450, currentPrice: 450, owned: 0, history: [] },
-            { id: 4, name: "Dragon Bone Relic", rarity: "Epic", basePrice: 1500, currentPrice: 1500, owned: 0, history: [] },
-            { id: 5, name: "Crown of Aethelgard", rarity: "Mythic", basePrice: 5000, currentPrice: 5000, owned: 0, history: [] }
+            { id: 0, name: "Rusty Sword", rarity: "Common", basePrice: 20, currentPrice: 20, stock: 50, maxStock: 50, owned: 0, history: [] },
+            { id: 1, name: "Leather Cap", rarity: "Common", basePrice: 45, currentPrice: 45, stock: 30, maxStock: 30, owned: 0, history: [] },
+            { id: 2, name: "Steel Shield", rarity: "Uncommon", basePrice: 150, currentPrice: 150, stock: 15, maxStock: 15, owned: 0, history: [] },
+            { id: 3, name: "Elven Bow", rarity: "Rare", basePrice: 500, currentPrice: 500, stock: 8, maxStock: 8, owned: 0, history: [] },
+            { id: 4, name: "Ancient Relic", rarity: "Epic", basePrice: 1800, currentPrice: 1800, stock: 3, maxStock: 3, owned: 0, history: [] },
+            { id: 5, name: "Dragon Heart", rarity: "Mythic", basePrice: 6000, currentPrice: 6000, stock: 1, maxStock: 1, owned: 0, history: [] }
         ];
 
-        // Populate initial history for the chart
-        items.forEach(item => {
-            for(let i=0; i<historyLength; i++) {
-                item.history.push(item.basePrice);
-            }
-        });
-
-        // --- Core Functions ---
-        
-        function formatMoney(amount) {
-            return amount.toFixed(2) + " €";
-        }
+        items.forEach(i => { for(let j=0; j<historyLength; j++) i.history.push(i.basePrice); });
 
         function updateUI() {
-            document.getElementById('balanceDisplay').innerText = formatMoney(money);
+            document.getElementById('balanceDisplay').innerText = money.toFixed(2) + " €";
             renderMarket();
             renderInventory();
             drawChart();
         }
 
+        function renderMarket() {
+            const list = document.getElementById('marketList');
+            list.innerHTML = '';
+            items.forEach(item => {
+                const prev = item.history[item.history.length - 2];
+                const diff = item.currentPrice - prev;
+                const pct = (diff / prev) * 100;
+                const colorClass = diff >= 0 ? 'trend-up' : 'trend-down';
+                const sign = diff >= 0 ? '+' : '';
+
+                const card = document.createElement('div');
+                card.className = `item-card ${selectedId === item.id ? 'active' : ''}`;
+                card.onclick = () => { selectedId = item.id; updateUI(); };
+                card.innerHTML = `
+                    <div class="card-row">
+                        <div class="name-stack">
+                            <span class="item-name r-${item.rarity}">${item.name}</span>
+                            <span class="item-stock">Stock: ${item.stock}/${item.maxStock}</span>
+                        </div>
+                        <div class="price-stack">
+                            <div class="change-val ${colorClass}">${sign}${diff.toFixed(2)} €</div>
+                            <div class="change-pct ${colorClass}">${sign}${pct.toFixed(2)}%</div>
+                        </div>
+                        <button onclick="buyItem(${item.id}); event.stopPropagation();" 
+                            ${(money < item.currentPrice || item.stock <= 0) ? 'disabled' : ''}>BUY</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventoryList');
+            list.innerHTML = '';
+            let hasAny = false;
+            items.forEach(item => {
+                if(item.owned > 0) {
+                    hasAny = true;
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.innerHTML = `
+                        <div class="card-row">
+                            <div class="name-stack">
+                                <span class="item-name r-${item.rarity}">${item.name} (x${item.owned})</span>
+                                <span class="item-stock">Market: ${item.currentPrice.toFixed(2)}€</span>
+                            </div>
+                            <button class="btn-sell" onclick="sellItem(${item.id})">SELL</button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                }
+            });
+            if(!hasAny) list.innerHTML = '<p style="text-align:center; color:var(--muted); font-size:0.8rem;">No assets owned</p>';
+        }
+
         function buyItem(id) {
-            let item = items[id];
-            if (money >= item.currentPrice) {
+            const item = items[id];
+            if(money >= item.currentPrice && item.stock > 0) {
                 money -= item.currentPrice;
                 item.owned++;
+                item.stock--;
+                // Market Rule: Buying increases demand and price
+                item.currentPrice *= 1.05; 
                 updateUI();
             }
         }
 
         function sellItem(id) {
-            let item = items[id];
-            if (item.owned > 0) {
+            const item = items[id];
+            if(item.owned > 0) {
                 money += item.currentPrice;
                 item.owned--;
+                item.stock++;
+                // Market Rule: Selling increases supply and lowers price
+                item.currentPrice *= 0.95;
                 updateUI();
             }
         }
 
-        function selectItem(id) {
-            selectedItemId = id;
-            document.getElementById('chartTitle').innerText = `Market History: ${items[id].name}`;
-            updateUI();
-        }
-
-        // --- Market Simulation ---
-        
         function marketTick() {
             items.forEach(item => {
-                const config = rarities[item.rarity];
-                let change = (Math.random() * config.volatility * 2) - config.volatility;
+                // Base volatility
+                let volatility = 0.02;
+                if(item.rarity === "Mythic") volatility = 0.15;
                 
-                if (item.currentPrice > item.basePrice * 1.5) change -= config.meanReversion;
-                if (item.currentPrice < item.basePrice * 0.5) change += config.meanReversion;
+                let change = 1 + (Math.random() * volatility * 2 - volatility);
                 
-                item.currentPrice = Math.max(1, item.currentPrice * (1 + change));
+                // MARKET RULE: Supply & Demand Multiplier
+                // If stock is low (less than 20%), price starts climbing significantly
+                const scarcityRatio = 1 - (item.stock / item.maxStock);
+                if(scarcityRatio > 0.8) change += 0.02; // Scarcity premium
                 
+                item.currentPrice *= change;
+                
+                // Safety: Price can't be 0
+                if(item.currentPrice < 1) item.currentPrice = 1;
+
                 item.history.push(item.currentPrice);
-                if (item.history.length > historyLength) {
-                    item.history.shift();
-                }
+                if(item.history.length > historyLength) item.history.shift();
             });
             updateUI();
         }
 
-        // --- Rendering ---
-
-        function renderMarket() {
-            const container = document.getElementById('marketList');
-            container.innerHTML = '';
-            
-            items.forEach(item => {
-                const prevPrice = item.history[item.history.length - 2];
-                const trendClass = item.currentPrice >= prevPrice ? 'trend-up' : 'trend-down';
-                const trendIcon = item.currentPrice >= prevPrice ? '▲' : '▼';
-                
-                const div = document.createElement('div');
-                div.className = `item-card ${selectedItemId === item.id ? 'active' : ''}`;
-                div.onclick = () => selectItem(item.id);
-                
-                div.innerHTML = `
-                    <div class="item-info">
-                        <span class="item-name r-${item.rarity}">${item.name}</span>
-                        <span class="item-rarity r-${item.rarity}">${item.rarity}</span>
-                    </div>
-                    <div class="price-info">
-                        <span class="price ${trendClass}">${trendIcon} ${formatMoney(item.currentPrice)}</span>
-                        <button onclick="event.stopPropagation(); buyItem(${item.id})" ${money < item.currentPrice ? 'disabled' : ''}>BUY</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function renderInventory() {
-            const container = document.getElementById('inventoryList');
-            container.innerHTML = '';
-            
-            let hasItems = false;
-            
-            items.forEach(item => {
-                if (item.owned > 0) {
-                    hasItems = true;
-                    const div = document.createElement('div');
-                    div.className = 'item-card';
-                    div.innerHTML = `
-                        <div class="item-info">
-                            <span class="item-name r-${item.rarity}">${item.name} <span style="color:white; margin-left:5px;">x${item.owned}</span></span>
-                            <span class="item-rarity r-${item.rarity}">Total: ${formatMoney(item.currentPrice * item.owned)}</span>
-                        </div>
-                        <div class="price-info">
-                            <span class="price text-muted">${formatMoney(item.currentPrice)}</span>
-                            <button class="btn-sell" onclick="sellItem(${item.id})">SELL</button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                }
-            });
-
-            if (!hasItems) {
-                container.innerHTML = `<div style="color: var(--muted); text-align: center; padding-top: 20px;">Your portfolio is empty.<br><br>Buy items from the market!</div>`;
-            }
-        }
-
-        // --- Chart Canvas Drawing ---
-        
         function drawChart() {
             const canvas = document.getElementById('marketChart');
             const ctx = canvas.getContext('2d');
-            const item = items[selectedItemId];
+            const item = items[selectedId];
             
-            // Adjust canvas resolution for crisp lines
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.parentElement.getBoundingClientRect();
+            document.getElementById('chartTitle').innerText = `${item.name} - Price History (${item.currentPrice.toFixed(2)} €)`;
             
-            // Subtract title height (~40px) and padding from canvas calculation
-            canvas.width = (rect.width - 40) * dpr; 
-            canvas.height = (rect.height - 80) * dpr;
+            const w = canvas.width = canvas.offsetWidth;
+            const h = canvas.height = canvas.offsetHeight;
             
-            ctx.scale(dpr, dpr);
+            ctx.clearRect(0,0,w,h);
             
-            const w = rect.width - 40;
-            const h = rect.height - 80;
-            const history = item.history;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, w, h);
-            
-            // Margins to prevent clipping and make room for text
-            const rightMargin = 70;
-            const topMargin = 20;
-            const bottomMargin = 20;
-            const chartW = w - rightMargin;
-            const chartH = h - topMargin - bottomMargin;
-            
-            let min = Math.min(...history);
-            let max = Math.max(...history);
-            
-            // Dynamic padding so graph doesn't hug the top/bottom lines
-            let padding = (max - min) * 0.15;
-            if (padding === 0) padding = 5; 
-            min -= padding;
-            max += padding;
+            // Grid lines
+            ctx.strokeStyle = "#1e293b";
+            ctx.lineWidth = 1;
+            for(let i=0; i<10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * (h/10)); ctx.lineTo(w, i * (h/10));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(i * (w/10), 0); ctx.lineTo(i * (w/10), h);
+                ctx.stroke();
+            }
+
+            const min = Math.min(...item.history) * 0.95;
+            const max = Math.max(...item.history) * 1.05;
             const range = max - min;
 
-            // 1. Draw Grid Lines and Labels (Graph Paper Effect)
-            ctx.fillStyle = '#94a3b8'; // Label color
-            ctx.font = '12px monospace';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.strokeStyle = '#334155'; // Grid line color
-            ctx.lineWidth = 1;
-
-            const gridLines = 5;
-            for (let i = 0; i <= gridLines; i++) {
-                const yPos = topMargin + chartH - (i / gridLines) * chartH;
-                const value = min + (i / gridLines) * range;
-
-                // Draw horizontal line
-                ctx.beginPath();
-                ctx.moveTo(0, yPos);
-                ctx.lineTo(chartW, yPos);
-                ctx.stroke();
-
-                // Draw price label
-                ctx.fillText(value.toFixed(2) + ' €', chartW + 8, yPos);
-            }
-            
-            // 2. Draw Market Line
             ctx.beginPath();
-            ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 3;
-            ctx.lineJoin = 'round';
-
-            for (let i = 0; i < history.length; i++) {
-                const x = (i / (historyLength - 1)) * chartW;
-                // Calculate Y within our safe chartH margins
-                const y = topMargin + chartH - ((history[i] - min) / range) * chartH;
-                
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
+            ctx.strokeStyle = item.currentPrice >= item.history[0] ? "#10b981" : "#ef4444";
+            
+            item.history.forEach((val, i) => {
+                const x = (i / (historyLength-1)) * w;
+                const y = h - ((val - min) / range) * h;
+                if(i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            });
             ctx.stroke();
-
-            // 3. Draw Gradient Fill below line
-            ctx.lineTo(chartW, topMargin + chartH);
-            ctx.lineTo(0, topMargin + chartH);
-            const gradient = ctx.createLinearGradient(0, topMargin, 0, topMargin + chartH);
-            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-            ctx.fillStyle = gradient;
+            
+            // Gradient
+            ctx.lineTo(w, h); ctx.lineTo(0, h);
+            const grad = ctx.createLinearGradient(0,0,0,h);
+            grad.addColorStop(0, ctx.strokeStyle + "44");
+            grad.addColorStop(1, "transparent");
+            ctx.fillStyle = grad;
             ctx.fill();
+
+            document.getElementById('chartStats').innerHTML = `
+                <span>LOW: ${min.toFixed(2)}€</span>
+                <span>HIGH: ${max.toFixed(2)}€</span>
+                <span>VOL: ${item.rarity}</span>
+            `;
         }
 
-        // --- Boot the game ---
-        selectItem(0); 
-        updateUI();
-        
-        // Market updates every 2 seconds
-        setInterval(marketTick, 2000);
-
-        // Redraw chart if window resizes
+        setInterval(marketTick, 3000);
         window.addEventListener('resize', drawChart);
-
+        updateUI();
     </script>
 </body>
 </html>
