@@ -41,7 +41,7 @@
             margin-bottom: 15px;
         }
 
-        .balance { font-size: 1.5rem; color: var(--success); text-shadow: 0 0 10px rgba(0,255,170,0.2); }
+        .balance { font-size: 1.5rem; color: var(--success); }
 
         .container {
             display: grid;
@@ -104,8 +104,10 @@
         .btn-appraise { background: var(--warning); color: #000; margin-top: 10px; width: 100%; border-radius: 4px; }
 
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .zoom-controls { display: flex; gap: 5px; }
-        .zoom-btn { background: #2b2f3a; padding: 2px 8px; border: 1px solid var(--border); color: white; cursor: pointer; }
+        .zoom-controls { display: flex; gap: 5px; align-items: center;}
+        .zoom-label { font-size: 0.6rem; color: var(--muted); margin-right: 5px; }
+        .zoom-btn { background: #2b2f3a; padding: 4px 10px; border: 1px solid var(--border); color: white; cursor: pointer; font-size: 1rem; }
+        .zoom-btn:active { background: var(--accent); }
 
         .chart-container { flex: 1; position: relative; margin-top: 10px; background: #000; border-radius: 2px; }
         canvas { width: 100%; height: 100%; display: block; }
@@ -140,8 +142,9 @@
             <div class="chart-header">
                 <h2 id="chartTitle" style="border:none; margin:0;">Market History</h2>
                 <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="changeZoom(0.2)">—</button>
-                    <button class="zoom-btn" onclick="changeZoom(-0.2)">+</button>
+                    <span class="zoom-label">SCALE</span>
+                    <button class="zoom-btn" onclick="changeZoom(1.5)">—</button>
+                    <button class="zoom-btn" onclick="changeZoom(0.5)">+</button>
                 </div>
             </div>
             <div class="chart-container">
@@ -166,21 +169,15 @@
     <script>
         let money = 500.00;
         let selectedId = 0;
-        let selectedInventoryIdx = null; // Format: "itemId-instanceIdx"
-        let zoomLevel = 1.2; 
+        let selectedInventoryIdx = null;
+        let zoomFactor = 1.0; // Higher = Zoomed Out, Lower = Zoomed In
         const historyLength = 50;
         const items = [];
         
         const modifiers = [
-            { name: "Polished", boost: 0.05 },
-            { name: "Ancient", boost: 0.15 },
-            { name: "Masterwork", boost: 0.25 },
-            { name: "Glowing", boost: 0.10 },
-            { name: "Flawless", boost: 0.30 },
-            { name: "Legendary-Engraved", boost: 0.50 },
-            { name: "Cursed-Power", boost: 0.40 },
-            { name: "Hyper-Dense", boost: 0.12 },
-            { name: "Pristine", boost: 0.20 },
+            { name: "Polished", boost: 0.05 }, { name: "Ancient", boost: 0.15 }, { name: "Masterwork", boost: 0.25 },
+            { name: "Glowing", boost: 0.10 }, { name: "Flawless", boost: 0.30 }, { name: "Legendary-Engraved", boost: 0.50 },
+            { name: "Cursed-Power", boost: 0.40 }, { name: "Hyper-Dense", boost: 0.12 }, { name: "Pristine", boost: 0.20 },
             { name: "Void-Touched", boost: 0.75 }
         ];
 
@@ -193,31 +190,24 @@
                 let p = prefixes[Math.floor(Math.random() * prefixes.length)];
                 let m = materials[Math.floor(Math.random() * materials.length)];
                 let t = types[Math.floor(Math.random() * types.length)];
-                
-                let rarity = "Common";
-                if (i > 90) rarity = "Artifact";
-                else if (i > 75) rarity = "Legendary";
-                else if (i > 55) rarity = "Epic";
-                else if (i > 30) rarity = "Rare";
-                else if (i > 15) rarity = "Uncommon";
-
+                let rarity = i > 90 ? "Artifact" : i > 75 ? "Legendary" : i > 55 ? "Epic" : i > 30 ? "Rare" : i > 15 ? "Uncommon" : "Common";
                 let base = (i * 25) + 20; 
                 items.push({
-                    id: i,
-                    name: `${p} ${m} ${t}`,
-                    rarity: rarity,
-                    basePrice: base,
-                    currentPrice: base,
-                    stock: Math.max(5, 100 - i),
-                    maxStock: Math.max(5, 100 - i),
-                    owned: [], 
-                    history: Array(historyLength).fill(base)
+                    id: i, name: `${p} ${m} ${t}`, rarity: rarity, basePrice: base, currentPrice: base,
+                    stock: Math.max(5, 100 - i), maxStock: Math.max(5, 100 - i),
+                    owned: [], history: Array(historyLength).fill(base)
                 });
             }
             document.getElementById('itemCount').innerText = items.length;
         }
 
-        function changeZoom(val) { zoomLevel = Math.max(0.1, zoomLevel + val); drawChart(); }
+        // Fixed Zoom Logic
+        function changeZoom(multiplier) {
+            zoomFactor *= multiplier;
+            // Constrain zoom so we don't go to infinity or zero
+            zoomFactor = Math.min(Math.max(zoomFactor, 0.001), 100);
+            drawChart();
+        }
 
         function buyItem(id) {
             const item = items[id];
@@ -233,38 +223,22 @@
         function sellItem(itemId, instanceIdx) {
             const item = items[itemId];
             const instance = item.owned[instanceIdx];
-            
-            // Calculate total multiplier from mods
             let modMultiplier = 1;
             instance.mods.forEach(m => modMultiplier += m.boost);
-
-            // Add cash to player balance
-            const payout = item.currentPrice * modMultiplier;
-            money += payout;
-
-            // Remove item from inventory
+            money += (item.currentPrice * modMultiplier);
             item.owned.splice(instanceIdx, 1);
-            
-            // Adjust market stock and price
             item.stock++;
             item.currentPrice *= 0.995;
-            
-            // Deselect to prevent errors
             selectedInventoryIdx = null;
             updateUI();
         }
 
         function appraiseSelected() {
             if (selectedInventoryIdx === null || money < 50) return;
-
             const [itemId, instanceIdx] = selectedInventoryIdx.split('-').map(Number);
             const itemInstance = items[itemId].owned[instanceIdx];
-            
             if (!itemInstance) return;
-
             money -= 50;
-            
-            // 70% chance to find a modifier
             if (Math.random() < 0.7) {
                 const randomMod = modifiers[Math.floor(Math.random() * modifiers.length)];
                 itemInstance.mods.push(randomMod);
@@ -315,24 +289,19 @@
         function renderInventory() {
             const list = document.getElementById('inventoryList');
             list.innerHTML = '';
-            
             items.forEach(item => {
                 item.owned.forEach((instance, idx) => {
                     const uniqueId = `${item.id}-${idx}`;
                     let modMultiplier = 1;
                     instance.mods.forEach(m => modMultiplier += m.boost);
-                    
                     const card = document.createElement('div');
                     card.className = `item-card ${selectedInventoryIdx === uniqueId ? 'active' : ''}`;
-                    card.onclick = () => { 
-                        selectedInventoryIdx = uniqueId; 
-                        updateUI(); 
-                    };
+                    card.onclick = () => { selectedInventoryIdx = uniqueId; updateUI(); };
                     card.innerHTML = `
                         <div class="name-cell">
                             <span class="item-name r-${item.rarity}">${item.name}</span>
                             <span class="modifier-tag">${instance.mods.length > 0 ? instance.mods.map(m => `[${m.name}]`).join(' ') : 'No Modifiers'}</span>
-                            <span class="item-stock">VALUE: ${(item.currentPrice * modMultiplier).toFixed(2)}€</span>
+                            <span class="item-stock">VAL: ${(item.currentPrice * modMultiplier).toFixed(2)}€</span>
                         </div>
                         <div style="font-size:0.7rem; color:var(--success)">+${((modMultiplier-1)*100).toFixed(0)}%</div>
                         <button class="btn-sell" onclick="event.stopPropagation(); sellItem(${item.id}, ${idx})">SELL</button>
@@ -347,25 +316,33 @@
             const ctx = canvas.getContext('2d');
             const item = items[selectedId];
             if (!item) return;
+
             document.getElementById('chartTitle').innerText = `${item.name} - LIVE: ${item.currentPrice.toFixed(2)}€`;
+            
             const dpr = window.devicePixelRatio || 1;
             canvas.width = canvas.offsetWidth * dpr;
             canvas.height = canvas.offsetHeight * dpr;
             ctx.scale(dpr, dpr);
+            
             const w = canvas.offsetWidth;
             const h = canvas.offsetHeight;
             const paddingRight = 75;
             const chartW = w - paddingRight;
+
             ctx.clearRect(0, 0, w, h);
+
             let min = Math.min(...item.history);
             let max = Math.max(...item.history);
-            let range = max - min;
-            if (range === 0) range = item.currentPrice * 0.1;
+            let actualRange = max - min;
+            if (actualRange === 0) actualRange = item.currentPrice * 0.05;
+
+            // Apply Zoom Factor to the viewing range
+            let displayRange = actualRange * zoomFactor;
             let mid = (max + min) / 2;
-            let displayRange = range * zoomLevel;
             let displayMin = mid - (displayRange / 2);
             let displayMax = mid + (displayRange / 2);
 
+            // Labels and Grids
             ctx.strokeStyle = '#1e293b'; ctx.fillStyle = '#64748b'; ctx.font = '10px monospace';
             for(let i=0; i<=4; i++) {
                 const y = h - (i/4) * h;
@@ -373,6 +350,8 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartW, y); ctx.stroke();
                 ctx.fillText(val + "€", chartW + 5, y + 3);
             }
+
+            // Line
             ctx.beginPath(); ctx.lineWidth = 2;
             ctx.strokeStyle = item.currentPrice >= item.history[0] ? "#00ffaa" : "#ff4466";
             item.history.forEach((val, i) => {
@@ -381,10 +360,11 @@
                 if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             });
             ctx.stroke();
+
+            // Gradient
             ctx.lineTo(chartW, h); ctx.lineTo(0, h);
             const grad = ctx.createLinearGradient(0,0,0,h);
-            grad.addColorStop(0, ctx.strokeStyle + "33");
-            grad.addColorStop(1, "transparent");
+            grad.addColorStop(0, ctx.strokeStyle + "33"); grad.addColorStop(1, "transparent");
             ctx.fillStyle = grad; ctx.fill();
         }
 
