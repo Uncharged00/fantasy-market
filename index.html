@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Mogul: Terminal Edition</title>
+    <title>Market Mogul: Terminal Edition (100+ Items)</title>
     <style>
         :root {
             --bg: #0b0e14;
@@ -61,7 +61,11 @@
 
         .panel h2 { margin: 0 0 10px 0; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
 
-        .list-container { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .list-container { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
+
+        /* Custom Scrollbar */
+        .list-container::-webkit-scrollbar { width: 4px; }
+        .list-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
         .item-card {
             background: #1c212e;
@@ -69,7 +73,7 @@
             padding: 10px;
             cursor: pointer;
             display: grid;
-            grid-template-columns: 1fr 100px 70px;
+            grid-template-columns: 1fr 80px 70px;
             align-items: center;
             gap: 10px;
         }
@@ -77,10 +81,10 @@
         .item-card:hover, .item-card.active { border-color: var(--accent); background: #232936; }
 
         .name-cell { display: flex; flex-direction: column; }
-        .item-name { font-weight: bold; font-size: 0.9rem; }
+        .item-name { font-weight: bold; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .item-stock { font-size: 0.7rem; color: var(--muted); }
 
-        .change-cell-val { text-align: center; font-size: 0.9rem; font-weight: bold; }
+        .change-cell-val { text-align: center; font-size: 0.85rem; font-weight: bold; }
 
         button {
             background: var(--accent);
@@ -97,7 +101,6 @@
         .btn-sell { background: #334155; border: 1px solid var(--border); }
         .btn-sell:hover { background: var(--danger); }
 
-        /* Chart Controls */
         .chart-header {
             display: flex;
             justify-content: space-between;
@@ -108,7 +111,6 @@
         }
         .zoom-controls { display: flex; gap: 5px; }
         .zoom-btn { background: #2b2f3a; padding: 2px 8px; border: 1px solid var(--border); }
-        .zoom-btn:hover { background: var(--accent); }
 
         .chart-container { flex: 1; position: relative; margin-top: 10px; }
         canvas { width: 100%; height: 100%; background: #000; }
@@ -116,17 +118,19 @@
         .trend-up { color: var(--success); }
         .trend-down { color: var(--danger); }
         
+        /* Rarities */
         .r-Common { color: #94a3b8; }
         .r-Uncommon { color: #4ade80; }
         .r-Rare { color: #60a5fa; }
         .r-Epic { color: #c084fc; }
-        .r-Mythic { color: #fbbf24; }
+        .r-Legendary { color: #fbbf24; }
+        .r-Artifact { color: #ff4466; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div>CORE_EXCHANGE // SYS_ACTIVE</div>
+        <div>CORE_EXCHANGE // ASSET_INDEX_LOADED: <span id="itemCount">0</span></div>
         <div class="balance" id="balanceDisplay">500.00 €</div>
     </div>
 
@@ -158,19 +162,45 @@
     <script>
         let money = 500.00;
         let selectedId = 0;
-        let zoomLevel = 1.5; // Default "zoomed out"
+        let zoomLevel = 1.5;
         const historyLength = 50;
+        const items = [];
 
-        const items = [
-            { id: 0, name: "Rusty Blade", rarity: "Common", basePrice: 20, currentPrice: 20, stock: 100, maxStock: 100, owned: 0, history: [] },
-            { id: 1, name: "Iron Plate", rarity: "Common", basePrice: 50, currentPrice: 50, stock: 50, maxStock: 50, owned: 0, history: [] },
-            { id: 2, name: "Steel Mace", rarity: "Uncommon", basePrice: 180, currentPrice: 180, stock: 25, maxStock: 25, owned: 0, history: [] },
-            { id: 3, name: "Silver Bow", rarity: "Rare", basePrice: 600, currentPrice: 600, stock: 12, maxStock: 12, owned: 0, history: [] },
-            { id: 4, name: "Void Relic", rarity: "Epic", basePrice: 2200, currentPrice: 2200, stock: 5, maxStock: 5, owned: 0, history: [] },
-            { id: 5, name: "Star Shard", rarity: "Mythic", basePrice: 8500, currentPrice: 8500, stock: 2, maxStock: 2, owned: 0, history: [] }
-        ];
+        // GENERATOR DATA
+        const prefixes = ["Ancient", "Rusty", "Shiny", "Void", "Eternal", "Broken", "Divine", "Cursed", "Nano", "Cyber", "Primal", "Ghostly"];
+        const materials = ["Iron", "Steel", "Glass", "Plasma", "Aether", "Wood", "Bone", "Onyx", "Gold", "Diamond", "Carbon", "Silicon"];
+        const types = ["Shard", "Blade", "Core", "Relic", "Plating", "Sabatons", "Helm", "Scroll", "Data-Pad", "Link", "Fragment", "Sphere"];
 
-        items.forEach(i => { for(let j=0; j<historyLength; j++) i.history.push(i.basePrice); });
+        // 1. GENERATE 100+ ITEMS
+        function generateMarket() {
+            for (let i = 0; i < 106; i++) {
+                let p = prefixes[Math.floor(Math.random() * prefixes.length)];
+                let m = materials[Math.floor(Math.random() * materials.length)];
+                let t = types[Math.floor(Math.random() * types.length)];
+                
+                let rarity = "Common";
+                if (i > 95) rarity = "Artifact";
+                else if (i > 85) rarity = "Legendary";
+                else if (i > 65) rarity = "Epic";
+                else if (i > 40) rarity = "Rare";
+                else if (i > 20) rarity = "Uncommon";
+
+                let base = (i * i * 0.8) + 10; // Exponential price curve
+                
+                items.push({
+                    id: i,
+                    name: `${p} ${m} ${t}`,
+                    rarity: rarity,
+                    basePrice: base,
+                    currentPrice: base,
+                    stock: Math.max(1, 100 - i), // Rarer items have lower stock
+                    maxStock: Math.max(1, 100 - i),
+                    owned: 0,
+                    history: Array(historyLength).fill(base)
+                });
+            }
+            document.getElementById('itemCount').innerText = items.length;
+        }
 
         function changeZoom(val) {
             zoomLevel = Math.max(0.1, zoomLevel + val);
@@ -201,10 +231,11 @@
 
         function marketTick() {
             items.forEach(item => {
-                let volatility = { "Common": 0.002, "Uncommon": 0.005, "Rare": 0.01, "Epic": 0.015, "Mythic": 0.03 }[item.rarity];
+                let vMap = { "Common": 0.002, "Uncommon": 0.005, "Rare": 0.01, "Epic": 0.015, "Legendary": 0.03, "Artifact": 0.05 };
+                let volatility = vMap[item.rarity];
                 let drift = (Math.random() * volatility * 2 - volatility);
-                const stockRatio = item.stock / item.maxStock;
-                if(stockRatio < 0.10) drift += 0.005; 
+                
+                if((item.stock / item.maxStock) < 0.10) drift += 0.005; 
 
                 item.currentPrice *= (1 + drift);
                 if(item.currentPrice < item.basePrice * 0.2) item.currentPrice = item.basePrice * 0.2;
@@ -217,6 +248,7 @@
 
         function renderMarket() {
             const list = document.getElementById('marketList');
+            const currentScroll = list.scrollTop;
             list.innerHTML = '';
             items.forEach(item => {
                 const prev = item.history[item.history.length - 2];
@@ -225,15 +257,13 @@
 
                 const card = document.createElement('div');
                 card.className = `item-card ${selectedId === item.id ? 'active' : ''}`;
-                card.onclick = () => { selectedId = item.id; updateUI(); };
+                card.onclick = () => { selectedId = item.id; drawChart(); updateUI(); };
                 card.innerHTML = `
                     <div class="name-cell">
                         <span class="item-name r-${item.rarity}">${item.name}</span>
-                        <span class="item-stock">STOCK: ${item.stock}</span>
+                        <span class="item-stock">S:${item.stock} | €${item.currentPrice.toFixed(0)}</span>
                     </div>
-                    <div class="change-cell-val ${color}">
-                        ${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(2)}%
-                    </div>
+                    <div class="change-cell-val ${color}">${pct >= 0 ? '▲' : '▼'}${Math.abs(pct).toFixed(2)}%</div>
                     <div class="action-cell">
                         <button onclick="buyItem(${item.id}); event.stopPropagation();" 
                             ${(money < item.currentPrice || item.stock <= 0) ? 'disabled' : ''}>BUY</button>
@@ -241,6 +271,7 @@
                 `;
                 list.appendChild(card);
             });
+            list.scrollTop = currentScroll;
         }
 
         function renderInventory() {
@@ -253,7 +284,7 @@
                 card.innerHTML = `
                     <div class="name-cell">
                         <span class="item-name r-${item.rarity}">${item.name} (x${item.owned})</span>
-                        <span class="item-stock">TOTAL: ${(item.currentPrice * item.owned).toFixed(2)}€</span>
+                        <span class="item-stock">VALUE: ${(item.currentPrice * item.owned).toFixed(2)}€</span>
                     </div>
                     <button class="btn-sell" onclick="sellItem(${item.id})">SELL</button>
                 `;
@@ -265,7 +296,8 @@
             const canvas = document.getElementById('marketChart');
             const ctx = canvas.getContext('2d');
             const item = items[selectedId];
-            
+            if (!item) return;
+
             document.getElementById('chartTitle').innerText = `${item.name} - LIVE: ${item.currentPrice.toFixed(2)}€`;
             
             const dpr = window.devicePixelRatio || 1;
@@ -282,11 +314,8 @@
 
             let min = Math.min(...item.history);
             let max = Math.max(...item.history);
-            
             let mid = (max + min) / 2;
             let currentRange = max - min;
-            // zoomLevel 1.5 = zoomed out (original user request)
-            // smaller zoomLevel = zoomed in
             let zoomedRange = Math.max(currentRange * zoomLevel, 0.1); 
             
             let displayMin = mid - (zoomedRange / 2);
@@ -297,10 +326,9 @@
             ctx.fillStyle = '#64748b';
             ctx.font = '10px monospace';
 
-            const gridCount = 5;
-            for(let i=0; i<=gridCount; i++) {
-                const y = h - (i/gridCount) * h;
-                const p = (displayMin + (i/gridCount) * finalRange).toFixed(2);
+            for(let i=0; i<=5; i++) {
+                const y = h - (i/5) * h;
+                const p = (displayMin + (i/5) * finalRange).toFixed(2);
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartW, y); ctx.stroke();
                 ctx.fillText(p + "€", chartW + 5, y + 3);
             }
@@ -308,7 +336,6 @@
             ctx.beginPath();
             ctx.lineWidth = 2;
             ctx.strokeStyle = item.currentPrice >= item.history[0] ? "#00ffaa" : "#ff4466";
-            
             item.history.forEach((val, i) => {
                 const x = (i / (historyLength - 1)) * chartW;
                 const y = h - ((val - displayMin) / finalRange) * h;
@@ -330,6 +357,7 @@
             drawChart();
         }
 
+        generateMarket();
         setInterval(marketTick, 2500);
         window.addEventListener('resize', drawChart);
         updateUI();
