@@ -97,6 +97,19 @@
         .btn-sell { background: #334155; border: 1px solid var(--border); }
         .btn-sell:hover { background: var(--danger); }
 
+        /* Chart Controls */
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+        .zoom-controls { display: flex; gap: 5px; }
+        .zoom-btn { background: #2b2f3a; padding: 2px 8px; border: 1px solid var(--border); }
+        .zoom-btn:hover { background: var(--accent); }
+
         .chart-container { flex: 1; position: relative; margin-top: 10px; }
         canvas { width: 100%; height: 100%; background: #000; }
 
@@ -124,7 +137,13 @@
         </div>
 
         <div class="panel">
-            <h2 id="chartTitle">Market History</h2>
+            <div class="chart-header">
+                <h2 id="chartTitle" style="border:none; margin:0;">Market History</h2>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="changeZoom(0.2)">—</button>
+                    <button class="zoom-btn" onclick="changeZoom(-0.2)">+</button>
+                </div>
+            </div>
             <div class="chart-container">
                 <canvas id="marketChart"></canvas>
             </div>
@@ -139,6 +158,7 @@
     <script>
         let money = 500.00;
         let selectedId = 0;
+        let zoomLevel = 1.5; // Default "zoomed out"
         const historyLength = 50;
 
         const items = [
@@ -152,13 +172,17 @@
 
         items.forEach(i => { for(let j=0; j<historyLength; j++) i.history.push(i.basePrice); });
 
+        function changeZoom(val) {
+            zoomLevel = Math.max(0.1, zoomLevel + val);
+            drawChart();
+        }
+
         function buyItem(id) {
             const item = items[id];
             if(money >= item.currentPrice && item.stock > 0) {
                 money -= item.currentPrice;
                 item.owned++;
                 item.stock--;
-                // Reduced trade impact to 0.5%
                 item.currentPrice *= 1.005; 
                 updateUI();
             }
@@ -170,7 +194,6 @@
                 money += item.currentPrice;
                 item.owned--;
                 item.stock++;
-                // Reduced trade impact to 0.5%
                 item.currentPrice *= 0.995;
                 updateUI();
             }
@@ -178,24 +201,12 @@
 
         function marketTick() {
             items.forEach(item => {
-                // Heavily reduced volatility for smoother price action
-                let volatility = { 
-                    "Common": 0.002, 
-                    "Uncommon": 0.005, 
-                    "Rare": 0.01, 
-                    "Epic": 0.015, 
-                    "Mythic": 0.03 
-                }[item.rarity];
-                
+                let volatility = { "Common": 0.002, "Uncommon": 0.005, "Rare": 0.01, "Epic": 0.015, "Mythic": 0.03 }[item.rarity];
                 let drift = (Math.random() * volatility * 2 - volatility);
-                
                 const stockRatio = item.stock / item.maxStock;
-                // Scarcity rule only triggers if stock is nearly empty
                 if(stockRatio < 0.10) drift += 0.005; 
 
                 item.currentPrice *= (1 + drift);
-                
-                // Keep price within a reasonable floor
                 if(item.currentPrice < item.basePrice * 0.2) item.currentPrice = item.basePrice * 0.2;
 
                 item.history.push(item.currentPrice);
@@ -271,18 +282,25 @@
 
             let min = Math.min(...item.history);
             let max = Math.max(...item.history);
-            let range = (max - min) || 1;
-            min -= range * 0.1;
-            max += range * 0.1;
-            range = max - min;
+            
+            let mid = (max + min) / 2;
+            let currentRange = max - min;
+            // zoomLevel 1.5 = zoomed out (original user request)
+            // smaller zoomLevel = zoomed in
+            let zoomedRange = Math.max(currentRange * zoomLevel, 0.1); 
+            
+            let displayMin = mid - (zoomedRange / 2);
+            let displayMax = mid + (zoomedRange / 2);
+            let finalRange = displayMax - displayMin;
 
             ctx.strokeStyle = '#1e293b';
             ctx.fillStyle = '#64748b';
             ctx.font = '10px monospace';
 
-            for(let i=0; i<=5; i++) {
-                const y = h - (i/5) * h;
-                const p = (min + (i/5) * range).toFixed(2);
+            const gridCount = 5;
+            for(let i=0; i<=gridCount; i++) {
+                const y = h - (i/gridCount) * h;
+                const p = (displayMin + (i/gridCount) * finalRange).toFixed(2);
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartW, y); ctx.stroke();
                 ctx.fillText(p + "€", chartW + 5, y + 3);
             }
@@ -290,9 +308,10 @@
             ctx.beginPath();
             ctx.lineWidth = 2;
             ctx.strokeStyle = item.currentPrice >= item.history[0] ? "#00ffaa" : "#ff4466";
+            
             item.history.forEach((val, i) => {
                 const x = (i / (historyLength - 1)) * chartW;
-                const y = h - ((val - min) / range) * h;
+                const y = h - ((val - displayMin) / finalRange) * h;
                 if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             });
             ctx.stroke();
