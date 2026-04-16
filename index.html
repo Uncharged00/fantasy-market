@@ -41,7 +41,7 @@
             margin-bottom: 15px;
         }
 
-        .balance { font-size: 1.5rem; color: var(--success); }
+        .balance { font-size: 1.5rem; color: var(--success); text-shadow: 0 0 10px rgba(0,255,170,0.2); }
 
         .container {
             display: grid;
@@ -80,10 +80,10 @@
 
         .item-card:hover, .item-card.active { border-color: var(--accent); background: #232936; }
 
-        .name-cell { display: flex; flex-direction: column; }
+        .name-cell { display: flex; flex-direction: column; min-width: 0; }
         .item-name { font-weight: bold; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .item-stock { font-size: 0.7rem; color: var(--muted); }
-        .modifier-tag { color: var(--warning); font-size: 0.65rem; font-style: italic; }
+        .modifier-tag { color: var(--warning); font-size: 0.65rem; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .change-cell-val { text-align: center; font-size: 0.85rem; font-weight: bold; }
 
@@ -96,13 +96,12 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.7rem;
-            transition: opacity 0.2s;
         }
 
         button:disabled { opacity: 0.2; cursor: not-allowed; }
         .btn-sell { background: #334155; border: 1px solid var(--border); }
         .btn-sell:hover { background: var(--danger); }
-        .btn-appraise { background: var(--warning); color: #000; margin-top: 10px; width: 100%; }
+        .btn-appraise { background: var(--warning); color: #000; margin-top: 10px; width: 100%; border-radius: 4px; }
 
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .zoom-controls { display: flex; gap: 5px; }
@@ -157,7 +156,7 @@
             <div class="appraisal-panel">
                 <h2>Appraisal Lab</h2>
                 <div id="appraisalUI">
-                    <p style="font-size: 0.7rem; color: var(--muted);">Select an item in your inventory to appraise it. Cost: 50.00 €</p>
+                    <p style="font-size: 0.7rem; color: var(--muted); margin-bottom: 5px;">Select inventory item. Cost: 50.00 €</p>
                     <button id="appraiseBtn" class="btn-appraise" disabled onclick="appraiseSelected()">APPRAISE ITEM</button>
                 </div>
             </div>
@@ -167,12 +166,11 @@
     <script>
         let money = 500.00;
         let selectedId = 0;
-        let selectedInventoryIdx = null;
+        let selectedInventoryIdx = null; // Format: "itemId-instanceIdx"
         let zoomLevel = 1.2; 
         const historyLength = 50;
         const items = [];
         
-        // Appraisal Modifiers
         const modifiers = [
             { name: "Polished", boost: 0.05 },
             { name: "Ancient", boost: 0.15 },
@@ -186,7 +184,6 @@
             { name: "Void-Touched", boost: 0.75 }
         ];
 
-        // Generator Config
         const prefixes = ["Ancient", "Rusty", "Shiny", "Void", "Eternal", "Broken", "Divine", "Cursed", "Nano", "Cyber", "Primal", "Ghostly"];
         const materials = ["Iron", "Steel", "Glass", "Plasma", "Aether", "Wood", "Bone", "Onyx", "Gold", "Diamond", "Carbon", "Silicon"];
         const types = ["Shard", "Blade", "Core", "Relic", "Plating", "Sabatons", "Helm", "Scroll", "Data-Pad", "Link", "Fragment", "Sphere"];
@@ -213,7 +210,7 @@
                     currentPrice: base,
                     stock: Math.max(5, 100 - i),
                     maxStock: Math.max(5, 100 - i),
-                    owned: [], // Now an array of objects to track individual item modifiers
+                    owned: [], 
                     history: Array(historyLength).fill(base)
                 });
             }
@@ -226,7 +223,7 @@
             const item = items[id];
             if(money >= item.currentPrice && item.stock > 0) {
                 money -= item.currentPrice;
-                item.owned.push({ mods: [] }); // Push a fresh item instance
+                item.owned.push({ mods: [] }); 
                 item.stock--;
                 item.currentPrice *= 1.005; 
                 updateUI();
@@ -236,14 +233,23 @@
         function sellItem(itemId, instanceIdx) {
             const item = items[itemId];
             const instance = item.owned[instanceIdx];
+            
+            // Calculate total multiplier from mods
             let modMultiplier = 1;
             instance.mods.forEach(m => modMultiplier += m.boost);
 
-            money += (item.currentPrice * modMultiplier);
+            // Add cash to player balance
+            const payout = item.currentPrice * modMultiplier;
+            money += payout;
+
+            // Remove item from inventory
             item.owned.splice(instanceIdx, 1);
+            
+            // Adjust market stock and price
             item.stock++;
             item.currentPrice *= 0.995;
             
+            // Deselect to prevent errors
             selectedInventoryIdx = null;
             updateUI();
         }
@@ -251,9 +257,12 @@
         function appraiseSelected() {
             if (selectedInventoryIdx === null || money < 50) return;
 
-            money -= 50;
             const [itemId, instanceIdx] = selectedInventoryIdx.split('-').map(Number);
             const itemInstance = items[itemId].owned[instanceIdx];
+            
+            if (!itemInstance) return;
+
+            money -= 50;
             
             // 70% chance to find a modifier
             if (Math.random() < 0.7) {
@@ -317,17 +326,16 @@
                     card.className = `item-card ${selectedInventoryIdx === uniqueId ? 'active' : ''}`;
                     card.onclick = () => { 
                         selectedInventoryIdx = uniqueId; 
-                        document.getElementById('appraiseBtn').disabled = (money < 50);
-                        renderInventory(); 
+                        updateUI(); 
                     };
                     card.innerHTML = `
                         <div class="name-cell">
                             <span class="item-name r-${item.rarity}">${item.name}</span>
-                            <span class="modifier-tag">${instance.mods.map(m => `[${m.name}]`).join(' ')}</span>
+                            <span class="modifier-tag">${instance.mods.length > 0 ? instance.mods.map(m => `[${m.name}]`).join(' ') : 'No Modifiers'}</span>
                             <span class="item-stock">VALUE: ${(item.currentPrice * modMultiplier).toFixed(2)}€</span>
                         </div>
                         <div style="font-size:0.7rem; color:var(--success)">+${((modMultiplier-1)*100).toFixed(0)}%</div>
-                        <button class="btn-sell" onclick="sellItem(${item.id}, ${idx})">SELL</button>
+                        <button class="btn-sell" onclick="event.stopPropagation(); sellItem(${item.id}, ${idx})">SELL</button>
                     `;
                     list.appendChild(card);
                 });
