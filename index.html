@@ -2,68 +2,165 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>The Reward Loop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE VOID LOOP</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #display { font-size: 3rem; font-weight: bold; margin: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.5); height: 100px; }
-        .rarity-common { color: #888; }
-        .rarity-rare { color: #3498db; text-shadow: 0 0 10px #3498db; }
-        .rarity-epic { color: #9b59b6; text-shadow: 0 0 15px #9b59b6; }
-        .rarity-legendary { color: #f1c40f; text-shadow: 0 0 25px #f1c40f; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        button { padding: 15px 40px; font-size: 1.2rem; cursor: pointer; background: #e74c3c; border: none; color: white; border-radius: 50px; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        button:active { transform: translateY(3px); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        #stats { position: absolute; bottom: 20px; font-family: monospace; color: #555; }
+        :root { --gold: #ffd700; --epic: #a335ee; --rare: #0070dd; --bg: #0f0f1b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        
+        #ui-top { position: absolute; top: 20px; display: flex; gap: 20px; font-size: 1.2rem; }
+        .stat-box { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* The Slot Reel */
+        #reel-container { position: relative; width: 300px; height: 120px; border: 4px solid #333; background: #000; overflow: hidden; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        #reel { position: absolute; width: 100%; transition: top 2s cubic-bezier(0.1, 0, 0.1, 1); top: 0; }
+        .slot-item { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; text-transform: uppercase; }
+
+        /* Buttons */
+        #controls { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        button { background: linear-gradient(180deg, #ff4757, #e84118); color: white; border: none; padding: 20px 60px; font-size: 1.5rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 0 #c23616; transition: 0.1s; }
+        button:active { transform: translateY(4px); box-shadow: 0 4px 0 #c23616; }
+        button:disabled { background: #444; box-shadow: 0 4px 0 #222; cursor: not-allowed; }
+
+        /* Juice */
+        .pity-bar-container { width: 300px; height: 10px; background: #222; margin-top: 15px; border-radius: 5px; overflow: hidden; }
+        #pity-bar { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; }
+        #message { margin-top: 20px; height: 30px; font-weight: bold; color: var(--gold); }
+        
+        .win-flash { animation: flash 0.5s infinite; }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="display">READY?</div>
-    <button onclick="spin()">SPIN FOR GLORY</button>
-    
-    <div id="stats">
-        Spins: <span id="count">0</span> | 
-        Legendaries Found: <span id="leg-count">0</span>
+    <div id="ui-top">
+        <div class="stat-box">GEMS: <span id="gems" style="color: var(--gold)">500</span></div>
+        <div class="stat-box">SHARDS: <span id="shards" style="color: var(--rare)">0</span></div>
     </div>
 
+    <div id="reel-container">
+        <div id="reel">
+            </div>
+    </div>
+
+    <div id="controls">
+        <button id="spin-btn" onclick="play()">SPIN (-50 GEMS)</button>
+        <div class="pity-bar-container"><div id="pity-bar"></div></div>
+        <div style="font-size: 0.8rem; color: #666;">PITY PROGRESSION</div>
+    </div>
+
+    <div id="message"></div>
+
 <script>
+    let gems = 500;
+    let shards = 0;
+    let pity = 0;
     const items = [
-        { name: "Rusty Spoon", rarity: "common", weight: 70 },
-        { name: "Silver Coin", rarity: "rare", weight: 20 },
-        { name: "Crystal Blade", rarity: "epic", weight: 9 },
-        { name: "GOD SLAYER", rarity: "legendary", weight: 1 }
+        { name: "TRASH", color: "#666", weight: 70 },
+        { name: "COMMON", color: "#fff", weight: 20 },
+        { name: "RARE", color: "#0070dd", weight: 8 },
+        { name: "EPIC", color: "#a335ee", weight: 1.5 },
+        { name: "JACKPOT", color: "#ffd700", weight: 0.5 }
     ];
 
-    let spins = 0;
-    let legs = 0;
+    const reel = document.getElementById('reel');
+    const msg = document.getElementById('message');
 
-    function spin() {
-        spins++;
-        document.getElementById('count').innerText = spins;
-        
-        // The core probability logic
-        let random = Math.random() * 100;
-        let cumulativeWeight = 0;
-        let selected = items[0];
-
-        for (let item of items) {
-            cumulativeWeight += item.weight;
-            if (random < cumulativeWeight) {
-                selected = item;
-                break;
-            }
-        }
-
-        const display = document.getElementById('display');
-        display.innerText = selected.name;
-        display.className = `rarity-${selected.rarity}`;
-
-        if (selected.rarity === 'legendary') {
-            legs++;
-            document.getElementById('leg-count').innerText = legs;
-            alert("✨ A 1% CHANCE! YOU ARE CHOSEN! ✨");
+    function initReel() {
+        reel.innerHTML = '';
+        for(let i=0; i<30; i++) {
+            const item = items[Math.floor(Math.random() * items.length)];
+            const div = document.createElement('div');
+            div.className = 'slot-item';
+            div.style.color = item.color;
+            div.innerText = item.name;
+            reel.appendChild(div);
         }
     }
+
+    async function play() {
+        if (gems < 50) {
+            msg.innerText = "OUT OF GEMS! WAIT FOR RECHARGE...";
+            return;
+        }
+
+        gems -= 50;
+        pity += 5;
+        updateUI();
+        
+        document.getElementById('spin-btn').disabled = true;
+        msg.innerText = "";
+        
+        // Determine Winner using Pity Logic
+        let roll = Math.random() * 100;
+        let winIndex = 0;
+        let cumulative = 0;
+        
+        // Boost jackpot chance based on pity
+        const effectiveWeights = [...items];
+        effectiveWeights[4].weight += (pity / 10); 
+
+        for (let i = 0; i < effectiveWeights.length; i++) {
+            cumulative += effectiveWeights[i].weight;
+            if (roll < cumulative) { winIndex = i; break; }
+        }
+
+        // The "Visual Lie" (Pseudo-random reel generation)
+        // We ensure the item the reel stops on matches our calculated winIndex
+        const finalItem = items[winIndex];
+        const stopOffset = 25 * 120; // Move down 25 items
+        
+        // Inject the actual winner at the stop position
+        const nodes = reel.children;
+        nodes[25].innerText = finalItem.name;
+        nodes[25].style.color = finalItem.color;
+        
+        // Near-Miss Logic: Put a Jackpot right ABOVE the winner
+        nodes[24].innerText = "JACKPOT";
+        nodes[24].style.color = "var(--gold)";
+
+        reel.style.transition = 'none';
+        reel.style.top = '0px';
+        
+        setTimeout(() => {
+            reel.style.transition = 'top 2s cubic-bezier(0.1, 0, 0.1, 1)';
+            reel.style.top = `-${stopOffset}px`;
+        }, 50);
+
+        setTimeout(() => {
+            document.getElementById('spin-btn').disabled = false;
+            handleResult(finalItem);
+        }, 2100);
+    }
+
+    function handleResult(item) {
+        if (item.name === "JACKPOT") {
+            msg.innerHTML = "✨ UNBELIEVABLE! JACKPOT! ✨";
+            gems += 2000;
+            pity = 0;
+            document.body.style.background = "#2d2d00";
+            setTimeout(() => document.body.style.background = "var(--bg)", 1000);
+        } else {
+            const shardGain = Math.floor(Math.random() * 15) + 5;
+            shards += shardGain;
+            msg.innerText = `NOT QUITE! +${shardGain} SHARDS FOR EFFORT`;
+        }
+        
+        if (shards >= 500) {
+            shards -= 500;
+            gems += 100;
+            msg.innerText = "SHARD CONVERSION: +100 GEMS!";
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('gems').innerText = gems;
+        document.getElementById('shards').innerText = shards;
+        document.getElementById('pity-bar').style.width = Math.min(pity, 100) + "%";
+    }
+
+    initReel();
 </script>
 </body>
 </html>
