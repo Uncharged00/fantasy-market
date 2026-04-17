@@ -2,73 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE VOID LOOP</title>
+    <title>LUCK ARCHITECT</title>
     <style>
-        :root { --gold: #ffd700; --epic: #a335ee; --rare: #0070dd; --bg: #0f0f1b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        :root { --gold: #ffd700; --epic: #a335ee; --rare: #0070dd; --bg: #0a0a0f; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh; }
         
-        #ui-top { position: absolute; top: 20px; display: flex; gap: 20px; font-size: 1.2rem; }
-        .stat-box { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); }
-        
-        /* The Slot Reel */
-        #reel-container { position: relative; width: 300px; height: 120px; border: 4px solid #333; background: #000; overflow: hidden; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
-        #reel { position: absolute; width: 100%; transition: top 2s cubic-bezier(0.1, 0, 0.1, 1); top: 0; }
-        .slot-item { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; text-transform: uppercase; }
+        #header { width: 100%; background: #151520; padding: 20px; display: flex; justify-content: space-around; border-bottom: 2px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .stat { text-align: center; }
+        .stat label { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .stat span { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
 
-        /* Buttons */
-        #controls { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        button { background: linear-gradient(180deg, #ff4757, #e84118); color: white; border: none; padding: 20px 60px; font-size: 1.5rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 0 #c23616; transition: 0.1s; }
-        button:active { transform: translateY(4px); box-shadow: 0 4px 0 #c23616; }
-        button:disabled { background: #444; box-shadow: 0 4px 0 #222; cursor: not-allowed; }
+        /* The Game Area */
+        #game-container { margin-top: 50px; display: flex; gap: 40px; align-items: flex-start; }
 
-        /* Juice */
-        .pity-bar-container { width: 300px; height: 10px; background: #222; margin-top: 15px; border-radius: 5px; overflow: hidden; }
-        #pity-bar { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; }
-        #message { margin-top: 20px; height: 30px; font-weight: bold; color: var(--gold); }
-        
-        .win-flash { animation: flash 0.5s infinite; }
-        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        #spinner-section { display: flex; flex-direction: column; align-items: center; }
+        #reel-container { width: 250px; height: 100px; border: 4px solid #444; background: #000; overflow: hidden; border-radius: 10px; position: relative; }
+        #reel { position: absolute; width: 100%; top: 0; transition: top 1.5s cubic-bezier(0.1, 0, 0.1, 1); }
+        .slot-item { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; }
+
+        /* Upgrade Shop */
+        #shop { background: #1a1a25; padding: 20px; border-radius: 15px; border: 1px solid #333; width: 300px; }
+        .upgrade-card { background: #252535; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .upgrade-info h4 { margin: 0; font-size: 0.9rem; color: #ddd; }
+        .upgrade-info p { margin: 0; font-size: 0.7rem; color: #888; }
+        button.buy-btn { background: var(--rare); border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button.buy-btn:disabled { background: #444; opacity: 0.5; }
+
+        #spin-btn { margin-top: 20px; padding: 20px 50px; font-size: 1.5rem; background: linear-gradient(#ff4757, #e84118); border: none; color: white; border-radius: 10px; cursor: pointer; box-shadow: 0 5px 0 #900; }
+        #spin-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #900; }
+
+        .xp-bar { width: 100%; height: 5px; background: #222; margin-top: 10px; }
+        #xp-fill { width: 0%; height: 100%; background: #2ecc71; transition: width 0.3s; }
     </style>
 </head>
 <body>
 
-    <div id="ui-top">
-        <div class="stat-box">GEMS: <span id="gems" style="color: var(--gold)">500</span></div>
-        <div class="stat-box">SHARDS: <span id="shards" style="color: var(--rare)">0</span></div>
+<div id="header">
+    <div class="stat"><label>Level</label><span id="lvl">1</span></div>
+    <div class="stat"><label>Gems</label><span id="gems">1000</span></div>
+    <div class="stat"><label>Tokens</label><span id="tokens" style="color: #2ecc71">0</span></div>
+</div>
+<div class="xp-bar"><div id="xp-fill"></div></div>
+
+<div id="game-container">
+    <div id="spinner-section">
+        <div id="reel-container"><div id="reel"></div></div>
+        <button id="spin-btn" onclick="play()">PULL LEVER</button>
+        <p id="msg" style="height: 20px; color: var(--gold); font-weight: bold;"></p>
     </div>
 
-    <div id="reel-container">
-        <div id="reel">
-            </div>
+    <div id="shop">
+        <h3 style="margin-top:0">Upgrades</h3>
+        <div class="upgrade-card">
+            <div class="upgrade-info"><h4>Magnetism</h4><p>+5% Jackpot Chance</p></div>
+            <button class="buy-btn" onclick="buy(0)">1 Token</button>
+        </div>
+        <div class="upgrade-card">
+            <div class="upgrade-info"><h4>Rebate</h4><p>+10 Gems per Spin</p></div>
+            <button class="buy-btn" onclick="buy(1)">2 Tokens</button>
+        </div>
+        <div class="upgrade-card">
+            <div class="upgrade-info"><h4>Dopamine Hit</h4><p>+20% XP Gain</p></div>
+            <button class="buy-btn" onclick="buy(2)">1 Token</button>
+        </div>
     </div>
-
-    <div id="controls">
-        <button id="spin-btn" onclick="play()">SPIN (-50 GEMS)</button>
-        <div class="pity-bar-container"><div id="pity-bar"></div></div>
-        <div style="font-size: 0.8rem; color: #666;">PITY PROGRESSION</div>
-    </div>
-
-    <div id="message"></div>
+</div>
 
 <script>
-    let gems = 500;
-    let shards = 0;
-    let pity = 0;
+    let state = { gems: 1000, tokens: 0, lvl: 1, xp: 0, luckBoost: 0, rebate: 0, xpMult: 1 };
     const items = [
-        { name: "TRASH", color: "#666", weight: 70 },
-        { name: "COMMON", color: "#fff", weight: 20 },
-        { name: "RARE", color: "#0070dd", weight: 8 },
-        { name: "EPIC", color: "#a335ee", weight: 1.5 },
-        { name: "JACKPOT", color: "#ffd700", weight: 0.5 }
+        { name: "VOID", color: "#444", weight: 80 },
+        { name: "BRONZE", color: "#cd7f32", weight: 15 },
+        { name: "GOLD", color: "#ffd700", weight: 4.5 },
+        { name: "!!!JACKPOT!!!", color: "#00ff00", weight: 0.5 }
     ];
 
-    const reel = document.getElementById('reel');
-    const msg = document.getElementById('message');
-
-    function initReel() {
+    function init() {
+        const reel = document.getElementById('reel');
         reel.innerHTML = '';
-        for(let i=0; i<30; i++) {
+        for(let i=0; i<40; i++) {
             const item = items[Math.floor(Math.random() * items.length)];
             const div = document.createElement('div');
             div.className = 'slot-item';
@@ -78,89 +90,70 @@
         }
     }
 
-    async function play() {
-        if (gems < 50) {
-            msg.innerText = "OUT OF GEMS! WAIT FOR RECHARGE...";
-            return;
-        }
-
-        gems -= 50;
-        pity += 5;
-        updateUI();
+    function play() {
+        if(state.gems < 50) return alert("Refilling gems...");
+        state.gems -= (50 - state.rebate);
         
-        document.getElementById('spin-btn').disabled = true;
-        msg.innerText = "";
-        
-        // Determine Winner using Pity Logic
+        // Rolling with upgrades
         let roll = Math.random() * 100;
-        let winIndex = 0;
         let cumulative = 0;
+        let winIndex = 0;
         
-        // Boost jackpot chance based on pity
-        const effectiveWeights = [...items];
-        effectiveWeights[4].weight += (pity / 10); 
+        let currentWeights = JSON.parse(JSON.stringify(items));
+        currentWeights[3].weight += state.luckBoost; // Apply Magnetism
 
-        for (let i = 0; i < effectiveWeights.length; i++) {
-            cumulative += effectiveWeights[i].weight;
-            if (roll < cumulative) { winIndex = i; break; }
+        for(let i=0; i<currentWeights.length; i++) {
+            cumulative += currentWeights[i].weight;
+            if(roll < cumulative) { winIndex = i; break; }
         }
 
-        // The "Visual Lie" (Pseudo-random reel generation)
-        // We ensure the item the reel stops on matches our calculated winIndex
+        const reel = document.getElementById('reel');
         const finalItem = items[winIndex];
-        const stopOffset = 25 * 120; // Move down 25 items
+        reel.children[35].innerText = finalItem.name;
+        reel.children[35].style.color = finalItem.color;
         
-        // Inject the actual winner at the stop position
-        const nodes = reel.children;
-        nodes[25].innerText = finalItem.name;
-        nodes[25].style.color = finalItem.color;
-        
-        // Near-Miss Logic: Put a Jackpot right ABOVE the winner
-        nodes[24].innerText = "JACKPOT";
-        nodes[24].style.color = "var(--gold)";
+        // Near miss hack
+        reel.children[34].innerText = "!!!JACKPOT!!!";
+        reel.children[34].style.color = "#00ff00";
 
         reel.style.transition = 'none';
         reel.style.top = '0px';
-        
         setTimeout(() => {
-            reel.style.transition = 'top 2s cubic-bezier(0.1, 0, 0.1, 1)';
-            reel.style.top = `-${stopOffset}px`;
+            reel.style.transition = 'top 1.5s cubic-bezier(0.1, 0, 0.1, 1)';
+            reel.style.top = '-3500px';
         }, 50);
 
-        setTimeout(() => {
-            document.getElementById('spin-btn').disabled = false;
-            handleResult(finalItem);
-        }, 2100);
+        setTimeout(() => finalize(winIndex), 1600);
     }
 
-    function handleResult(item) {
-        if (item.name === "JACKPOT") {
-            msg.innerHTML = "✨ UNBELIEVABLE! JACKPOT! ✨";
-            gems += 2000;
-            pity = 0;
-            document.body.style.background = "#2d2d00";
-            setTimeout(() => document.body.style.background = "var(--bg)", 1000);
-        } else {
-            const shardGain = Math.floor(Math.random() * 15) + 5;
-            shards += shardGain;
-            msg.innerText = `NOT QUITE! +${shardGain} SHARDS FOR EFFORT`;
+    function finalize(idx) {
+        state.xp += (20 * state.xpMult);
+        if(state.xp >= 100) {
+            state.xp = 0; state.lvl++; state.tokens++;
+            document.getElementById('msg').innerText = "LEVEL UP! +1 TOKEN";
         }
-        
-        if (shards >= 500) {
-            shards -= 500;
-            gems += 100;
-            msg.innerText = "SHARD CONVERSION: +100 GEMS!";
+        if(idx === 3) {
+            state.gems += 5000;
+            document.getElementById('msg').innerText = "SYSTEM OVERLOAD: JACKPOT!";
         }
+        updateUI();
+    }
+
+    function buy(id) {
+        if(id === 0 && state.tokens >= 1) { state.luckBoost += 2; state.tokens -= 1; }
+        if(id === 1 && state.tokens >= 2) { state.rebate += 10; state.tokens -= 2; }
+        if(id === 2 && state.tokens >= 1) { state.xpMult += 0.5; state.tokens -= 1; }
         updateUI();
     }
 
     function updateUI() {
-        document.getElementById('gems').innerText = gems;
-        document.getElementById('shards').innerText = shards;
-        document.getElementById('pity-bar').style.width = Math.min(pity, 100) + "%";
+        document.getElementById('gems').innerText = Math.floor(state.gems);
+        document.getElementById('tokens').innerText = state.tokens;
+        document.getElementById('lvl').innerText = state.lvl;
+        document.getElementById('xp-fill').style.width = state.xp + "%";
     }
 
-    initReel();
+    init();
 </script>
 </body>
 </html>
