@@ -2,384 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Mogul: Terminal Edition</title>
+    <title>The Reward Loop</title>
     <style>
-        :root {
-            --bg: #0b0e14;
-            --panel: #161a25;
-            --border: #2b2f3a;
-            --text: #e2e8f0;
-            --muted: #64748b;
-            --accent: #3b82f6;
-            --success: #00ffaa;
-            --danger: #ff4466;
-            --warning: #facc15;
-        }
-
-        body {
-            font-family: 'Consolas', 'Monaco', monospace;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        .header {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .balance { font-size: 1.5rem; color: var(--success); }
-
-        .container {
-            display: grid;
-            grid-template-columns: 380px 1fr 380px;
-            gap: 15px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .panel h2 { margin: 0 0 10px 0; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-
-        .list-container { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
-        .list-container::-webkit-scrollbar { width: 4px; }
-        .list-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        .item-card {
-            background: #1c212e;
-            border: 1px solid transparent;
-            padding: 10px;
-            cursor: pointer;
-            display: grid;
-            grid-template-columns: 1fr 80px 70px;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .item-card:hover, .item-card.active { border-color: var(--accent); background: #232936; }
-
-        .name-cell { display: flex; flex-direction: column; min-width: 0; }
-        .item-name { font-weight: bold; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-stock { font-size: 0.7rem; color: var(--muted); }
-        .modifier-tag { color: var(--warning); font-size: 0.65rem; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        .change-cell-val { text-align: center; font-size: 0.85rem; font-weight: bold; }
-
-        button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 6px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.7rem;
-        }
-
-        button:disabled { opacity: 0.2; cursor: not-allowed; }
-        .btn-sell { background: #334155; border: 1px solid var(--border); }
-        .btn-sell:hover { background: var(--danger); }
-        .btn-appraise { background: var(--warning); color: #000; margin-top: 10px; width: 100%; border-radius: 4px; }
-
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .zoom-controls { display: flex; gap: 5px; align-items: center;}
-        .zoom-label { font-size: 0.6rem; color: var(--muted); margin-right: 5px; }
-        .zoom-btn { background: #2b2f3a; padding: 4px 10px; border: 1px solid var(--border); color: white; cursor: pointer; font-size: 1rem; }
-        .zoom-btn:active { background: var(--accent); }
-
-        .chart-container { flex: 1; position: relative; margin-top: 10px; background: #000; border-radius: 2px; }
-        canvas { width: 100%; height: 100%; display: block; }
-
-        .appraisal-panel { margin-top: 15px; padding-top: 15px; border-top: 2px dashed var(--border); }
-
-        .trend-up { color: var(--success); }
-        .trend-down { color: var(--danger); }
-        
-        .r-Common { color: #94a3b8; }
-        .r-Uncommon { color: #4ade80; }
-        .r-Rare { color: #60a5fa; }
-        .r-Epic { color: #c084fc; }
-        .r-Legendary { color: #fbbf24; }
-        .r-Artifact { color: #ff4466; }
+        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #display { font-size: 3rem; font-weight: bold; margin: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.5); height: 100px; }
+        .rarity-common { color: #888; }
+        .rarity-rare { color: #3498db; text-shadow: 0 0 10px #3498db; }
+        .rarity-epic { color: #9b59b6; text-shadow: 0 0 15px #9b59b6; }
+        .rarity-legendary { color: #f1c40f; text-shadow: 0 0 25px #f1c40f; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        button { padding: 15px 40px; font-size: 1.2rem; cursor: pointer; background: #e74c3c; border: none; color: white; border-radius: 50px; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        button:active { transform: translateY(3px); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        #stats { position: absolute; bottom: 20px; font-family: monospace; color: #555; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>CORE_EXCHANGE // ASSETS_LOADED: <span id="itemCount">0</span></div>
-        <div class="balance" id="balanceDisplay">500.00 €</div>
+    <div id="display">READY?</div>
+    <button onclick="spin()">SPIN FOR GLORY</button>
+    
+    <div id="stats">
+        Spins: <span id="count">0</span> | 
+        Legendaries Found: <span id="leg-count">0</span>
     </div>
 
-    <div class="container">
-        <div class="panel">
-            <h2>Market Performance</h2>
-            <div class="list-container" id="marketList"></div>
-        </div>
+<script>
+    const items = [
+        { name: "Rusty Spoon", rarity: "common", weight: 70 },
+        { name: "Silver Coin", rarity: "rare", weight: 20 },
+        { name: "Crystal Blade", rarity: "epic", weight: 9 },
+        { name: "GOD SLAYER", rarity: "legendary", weight: 1 }
+    ];
 
-        <div class="panel">
-            <div class="chart-header">
-                <h2 id="chartTitle" style="border:none; margin:0;">Market History</h2>
-                <div class="zoom-controls">
-                    <span class="zoom-label">SCALE</span>
-                    <button class="zoom-btn" onclick="changeZoom(1.5)">—</button>
-                    <button class="zoom-btn" onclick="changeZoom(0.5)">+</button>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="marketChart"></canvas>
-            </div>
-        </div>
+    let spins = 0;
+    let legs = 0;
 
-        <div class="panel">
-            <h2>Your Inventory</h2>
-            <div class="list-container" id="inventoryList"></div>
-
-            <div class="appraisal-panel">
-                <h2>Appraisal Lab</h2>
-                <div id="appraisalUI">
-                    <p style="font-size: 0.7rem; color: var(--muted); margin-bottom: 5px;">Select inventory item. Cost: 50.00 €</p>
-                    <button id="appraiseBtn" class="btn-appraise" disabled onclick="appraiseSelected()">APPRAISE ITEM</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let money = 500.00;
-        let selectedId = 0;
-        let selectedInventoryIdx = null;
-        let zoomFactor = 1.0; // Higher = Zoomed Out, Lower = Zoomed In
-        const historyLength = 50;
-        const items = [];
+    function spin() {
+        spins++;
+        document.getElementById('count').innerText = spins;
         
-        const modifiers = [
-            { name: "Polished", boost: 0.05 }, { name: "Ancient", boost: 0.15 }, { name: "Masterwork", boost: 0.25 },
-            { name: "Glowing", boost: 0.10 }, { name: "Flawless", boost: 0.30 }, { name: "Legendary-Engraved", boost: 0.50 },
-            { name: "Cursed-Power", boost: 0.40 }, { name: "Hyper-Dense", boost: 0.12 }, { name: "Pristine", boost: 0.20 },
-            { name: "Void-Touched", boost: 0.75 }
-        ];
+        // The core probability logic
+        let random = Math.random() * 100;
+        let cumulativeWeight = 0;
+        let selected = items[0];
 
-        const prefixes = ["Ancient", "Rusty", "Shiny", "Void", "Eternal", "Broken", "Divine", "Cursed", "Nano", "Cyber", "Primal", "Ghostly"];
-        const materials = ["Iron", "Steel", "Glass", "Plasma", "Aether", "Wood", "Bone", "Onyx", "Gold", "Diamond", "Carbon", "Silicon"];
-        const types = ["Shard", "Blade", "Core", "Relic", "Plating", "Sabatons", "Helm", "Scroll", "Data-Pad", "Link", "Fragment", "Sphere"];
-
-        function generateMarket() {
-            for (let i = 0; i < 100; i++) {
-                let p = prefixes[Math.floor(Math.random() * prefixes.length)];
-                let m = materials[Math.floor(Math.random() * materials.length)];
-                let t = types[Math.floor(Math.random() * types.length)];
-                let rarity = i > 90 ? "Artifact" : i > 75 ? "Legendary" : i > 55 ? "Epic" : i > 30 ? "Rare" : i > 15 ? "Uncommon" : "Common";
-                let base = (i * 25) + 20; 
-                items.push({
-                    id: i, name: `${p} ${m} ${t}`, rarity: rarity, basePrice: base, currentPrice: base,
-                    stock: Math.max(5, 100 - i), maxStock: Math.max(5, 100 - i),
-                    owned: [], history: Array(historyLength).fill(base)
-                });
-            }
-            document.getElementById('itemCount').innerText = items.length;
-        }
-
-        // Fixed Zoom Logic
-        function changeZoom(multiplier) {
-            zoomFactor *= multiplier;
-            // Constrain zoom so we don't go to infinity or zero
-            zoomFactor = Math.min(Math.max(zoomFactor, 0.001), 100);
-            drawChart();
-        }
-
-        function buyItem(id) {
-            const item = items[id];
-            if(money >= item.currentPrice && item.stock > 0) {
-                money -= item.currentPrice;
-                item.owned.push({ mods: [] }); 
-                item.stock--;
-                item.currentPrice *= 1.005; 
-                updateUI();
+        for (let item of items) {
+            cumulativeWeight += item.weight;
+            if (random < cumulativeWeight) {
+                selected = item;
+                break;
             }
         }
 
-        function sellItem(itemId, instanceIdx) {
-            const item = items[itemId];
-            const instance = item.owned[instanceIdx];
-            let modMultiplier = 1;
-            instance.mods.forEach(m => modMultiplier += m.boost);
-            money += (item.currentPrice * modMultiplier);
-            item.owned.splice(instanceIdx, 1);
-            item.stock++;
-            item.currentPrice *= 0.995;
-            selectedInventoryIdx = null;
-            updateUI();
+        const display = document.getElementById('display');
+        display.innerText = selected.name;
+        display.className = `rarity-${selected.rarity}`;
+
+        if (selected.rarity === 'legendary') {
+            legs++;
+            document.getElementById('leg-count').innerText = legs;
+            alert("✨ A 1% CHANCE! YOU ARE CHOSEN! ✨");
         }
-
-        function appraiseSelected() {
-            if (selectedInventoryIdx === null || money < 50) return;
-            const [itemId, instanceIdx] = selectedInventoryIdx.split('-').map(Number);
-            const itemInstance = items[itemId].owned[instanceIdx];
-            if (!itemInstance) return;
-            money -= 50;
-            if (Math.random() < 0.7) {
-                const randomMod = modifiers[Math.floor(Math.random() * modifiers.length)];
-                itemInstance.mods.push(randomMod);
-            }
-            updateUI();
-        }
-
-        function marketTick() {
-            items.forEach(item => {
-                let vMap = { "Common": 0.002, "Uncommon": 0.005, "Rare": 0.01, "Epic": 0.015, "Legendary": 0.02, "Artifact": 0.04 };
-                let volatility = vMap[item.rarity];
-                let drift = (Math.random() * volatility * 2 - volatility);
-                if((item.stock / item.maxStock) < 0.10) drift += 0.005; 
-                item.currentPrice *= (1 + drift);
-                if(item.currentPrice < 1) item.currentPrice = 1;
-                item.history.push(item.currentPrice);
-                if(item.history.length > historyLength) item.history.shift();
-            });
-            updateUI();
-        }
-
-        function renderMarket() {
-            const list = document.getElementById('marketList');
-            const currentScroll = list.scrollTop;
-            list.innerHTML = '';
-            items.forEach(item => {
-                const prev = item.history[item.history.length - 2];
-                const pct = ((item.currentPrice - prev) / prev) * 100;
-                const card = document.createElement('div');
-                card.className = `item-card ${selectedId === item.id ? 'active' : ''}`;
-                card.onclick = () => { selectedId = item.id; drawChart(); updateUI(); };
-                card.innerHTML = `
-                    <div class="name-cell">
-                        <span class="item-name r-${item.rarity}">${item.name}</span>
-                        <span class="item-stock">S:${item.stock} | €${item.currentPrice.toFixed(0)}</span>
-                    </div>
-                    <div class="change-cell-val ${pct >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${pct >= 0 ? '▲' : '▼'}${Math.abs(pct).toFixed(2)}%
-                    </div>
-                    <button onclick="buyItem(${item.id}); event.stopPropagation();" 
-                        ${(money < item.currentPrice || item.stock <= 0) ? 'disabled' : ''}>BUY</button>
-                `;
-                list.appendChild(card);
-            });
-            list.scrollTop = currentScroll;
-        }
-
-        function renderInventory() {
-            const list = document.getElementById('inventoryList');
-            list.innerHTML = '';
-            items.forEach(item => {
-                item.owned.forEach((instance, idx) => {
-                    const uniqueId = `${item.id}-${idx}`;
-                    let modMultiplier = 1;
-                    instance.mods.forEach(m => modMultiplier += m.boost);
-                    const card = document.createElement('div');
-                    card.className = `item-card ${selectedInventoryIdx === uniqueId ? 'active' : ''}`;
-                    card.onclick = () => { selectedInventoryIdx = uniqueId; updateUI(); };
-                    card.innerHTML = `
-                        <div class="name-cell">
-                            <span class="item-name r-${item.rarity}">${item.name}</span>
-                            <span class="modifier-tag">${instance.mods.length > 0 ? instance.mods.map(m => `[${m.name}]`).join(' ') : 'No Modifiers'}</span>
-                            <span class="item-stock">VAL: ${(item.currentPrice * modMultiplier).toFixed(2)}€</span>
-                        </div>
-                        <div style="font-size:0.7rem; color:var(--success)">+${((modMultiplier-1)*100).toFixed(0)}%</div>
-                        <button class="btn-sell" onclick="event.stopPropagation(); sellItem(${item.id}, ${idx})">SELL</button>
-                    `;
-                    list.appendChild(card);
-                });
-            });
-        }
-
-        function drawChart() {
-            const canvas = document.getElementById('marketChart');
-            const ctx = canvas.getContext('2d');
-            const item = items[selectedId];
-            if (!item) return;
-
-            document.getElementById('chartTitle').innerText = `${item.name} - LIVE: ${item.currentPrice.toFixed(2)}€`;
-            
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * dpr;
-            canvas.height = canvas.offsetHeight * dpr;
-            ctx.scale(dpr, dpr);
-            
-            const w = canvas.offsetWidth;
-            const h = canvas.offsetHeight;
-            const paddingRight = 75;
-            const chartW = w - paddingRight;
-
-            ctx.clearRect(0, 0, w, h);
-
-            let min = Math.min(...item.history);
-            let max = Math.max(...item.history);
-            let actualRange = max - min;
-            if (actualRange === 0) actualRange = item.currentPrice * 0.05;
-
-            // Apply Zoom Factor to the viewing range
-            let displayRange = actualRange * zoomFactor;
-            let mid = (max + min) / 2;
-            let displayMin = mid - (displayRange / 2);
-            let displayMax = mid + (displayRange / 2);
-
-            // Labels and Grids
-            ctx.strokeStyle = '#1e293b'; ctx.fillStyle = '#64748b'; ctx.font = '10px monospace';
-            for(let i=0; i<=4; i++) {
-                const y = h - (i/4) * h;
-                const val = (displayMin + (i/4) * displayRange).toFixed(2);
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(chartW, y); ctx.stroke();
-                ctx.fillText(val + "€", chartW + 5, y + 3);
-            }
-
-            // Line
-            ctx.beginPath(); ctx.lineWidth = 2;
-            ctx.strokeStyle = item.currentPrice >= item.history[0] ? "#00ffaa" : "#ff4466";
-            item.history.forEach((val, i) => {
-                const x = (i / (historyLength - 1)) * chartW;
-                const y = h - ((val - displayMin) / displayRange) * h;
-                if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-
-            // Gradient
-            ctx.lineTo(chartW, h); ctx.lineTo(0, h);
-            const grad = ctx.createLinearGradient(0,0,0,h);
-            grad.addColorStop(0, ctx.strokeStyle + "33"); grad.addColorStop(1, "transparent");
-            ctx.fillStyle = grad; ctx.fill();
-        }
-
-        function updateUI() {
-            document.getElementById('balanceDisplay').innerText = money.toFixed(2) + " €";
-            document.getElementById('appraiseBtn').disabled = (selectedInventoryIdx === null || money < 50);
-            renderMarket();
-            renderInventory();
-            drawChart();
-        }
-
-        generateMarket();
-        setInterval(marketTick, 2500);
-        window.addEventListener('resize', drawChart);
-        updateUI();
-    </script>
+    }
+</script>
 </body>
 </html>
