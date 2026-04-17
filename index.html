@@ -2,85 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>LUCK ARCHITECT</title>
+    <title>NEON REWARD ENGINE</title>
     <style>
-        :root { --gold: #ffd700; --epic: #a335ee; --rare: #0070dd; --bg: #0a0a0f; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh; }
+        :root { --neon-pink: #ff00ff; --neon-blue: #00ffff; --gold: #ffff00; }
+        body { 
+            background: #050505; color: white; font-family: 'Courier New', monospace;
+            display: flex; flex-direction: column; align-items: center; overflow: hidden; height: 100vh;
+        }
         
-        #header { width: 100%; background: #151520; padding: 20px; display: flex; justify-content: space-around; border-bottom: 2px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-        .stat { text-align: center; }
-        .stat label { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; }
-        .stat span { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
+        /* The Juice / Screen Shake */
+        .shake { animation: shake 0.2s infinite; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(1px, 1px); }
+        }
 
-        /* The Game Area */
-        #game-container { margin-top: 50px; display: flex; gap: 40px; align-items: flex-start; }
+        #header { width: 100%; display: flex; justify-content: space-around; padding: 20px; background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--neon-pink); }
+        .val { font-size: 2rem; text-shadow: 0 0 10px var(--neon-blue); }
 
-        #spinner-section { display: flex; flex-direction: column; align-items: center; }
-        #reel-container { width: 250px; height: 100px; border: 4px solid #444; background: #000; overflow: hidden; border-radius: 10px; position: relative; }
-        #reel { position: absolute; width: 100%; top: 0; transition: top 1.5s cubic-bezier(0.1, 0, 0.1, 1); }
-        .slot-item { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; }
+        #display-case { 
+            margin-top: 40px; position: relative; width: 400px; height: 150px; 
+            border: 5px solid white; box-shadow: 0 0 30px var(--neon-pink);
+            background: #000; overflow: hidden;
+        }
+        
+        #reel { position: absolute; width: 100%; top: 0; text-align: center; }
+        .slot-item { 
+            height: 150px; line-height: 150px; font-size: 4rem; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 5px;
+        }
 
-        /* Upgrade Shop */
-        #shop { background: #1a1a25; padding: 20px; border-radius: 15px; border: 1px solid #333; width: 300px; }
-        .upgrade-card { background: #252535; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .upgrade-info h4 { margin: 0; font-size: 0.9rem; color: #ddd; }
-        .upgrade-info p { margin: 0; font-size: 0.7rem; color: #888; }
-        button.buy-btn { background: var(--rare); border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button.buy-btn:disabled { background: #444; opacity: 0.5; }
+        #btn-spin {
+            margin-top: 40px; padding: 25px 80px; font-size: 2rem; font-weight: 900;
+            background: var(--neon-pink); border: none; color: white; cursor: pointer;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+            transition: 0.1s; box-shadow: 0 0 20px var(--neon-pink);
+        }
+        #btn-spin:active { transform: scale(0.95); filter: brightness(1.5); }
 
-        #spin-btn { margin-top: 20px; padding: 20px 50px; font-size: 1.5rem; background: linear-gradient(#ff4757, #e84118); border: none; color: white; border-radius: 10px; cursor: pointer; box-shadow: 0 5px 0 #900; }
-        #spin-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #900; }
+        .particle {
+            position: absolute; pointer-events: none; width: 10px; height: 10px;
+            background: var(--gold); border-radius: 50%;
+        }
 
-        .xp-bar { width: 100%; height: 5px; background: #222; margin-top: 10px; }
-        #xp-fill { width: 0%; height: 100%; background: #2ecc71; transition: width 0.3s; }
+        #xp-container { width: 400px; height: 10px; background: #222; margin-top: 20px; }
+        #xp-bar { width: 0%; height: 100%; background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
     </style>
 </head>
-<body>
+<body id="body">
 
 <div id="header">
-    <div class="stat"><label>Level</label><span id="lvl">1</span></div>
-    <div class="stat"><label>Gems</label><span id="gems">1000</span></div>
-    <div class="stat"><label>Tokens</label><span id="tokens" style="color: #2ecc71">0</span></div>
+    <div>GEMS: <span id="gems" class="val">1000</span></div>
+    <div>LVL: <span id="lvl" class="val">1</span></div>
 </div>
-<div class="xp-bar"><div id="xp-fill"></div></div>
+<div id="xp-container"><div id="xp-bar"></div></div>
 
-<div id="game-container">
-    <div id="spinner-section">
-        <div id="reel-container"><div id="reel"></div></div>
-        <button id="spin-btn" onclick="play()">PULL LEVER</button>
-        <p id="msg" style="height: 20px; color: var(--gold); font-weight: bold;"></p>
-    </div>
-
-    <div id="shop">
-        <h3 style="margin-top:0">Upgrades</h3>
-        <div class="upgrade-card">
-            <div class="upgrade-info"><h4>Magnetism</h4><p>+5% Jackpot Chance</p></div>
-            <button class="buy-btn" onclick="buy(0)">1 Token</button>
-        </div>
-        <div class="upgrade-card">
-            <div class="upgrade-info"><h4>Rebate</h4><p>+10 Gems per Spin</p></div>
-            <button class="buy-btn" onclick="buy(1)">2 Tokens</button>
-        </div>
-        <div class="upgrade-card">
-            <div class="upgrade-info"><h4>Dopamine Hit</h4><p>+20% XP Gain</p></div>
-            <button class="buy-btn" onclick="buy(2)">1 Token</button>
-        </div>
-    </div>
+<div id="display-case">
+    <div id="reel"></div>
 </div>
+
+<button id="btn-spin" onclick="play()">SPIN</button>
 
 <script>
-    let state = { gems: 1000, tokens: 0, lvl: 1, xp: 0, luckBoost: 0, rebate: 0, xpMult: 1 };
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let gems = 1000;
+    let lvl = 1;
+    let xp = 0;
+
     const items = [
-        { name: "VOID", color: "#444", weight: 80 },
-        { name: "BRONZE", color: "#cd7f32", weight: 15 },
-        { name: "GOLD", color: "#ffd700", weight: 4.5 },
-        { name: "!!!JACKPOT!!!", color: "#00ff00", weight: 0.5 }
+        { name: "LOSS", color: "#333", sound: 100 },
+        { name: "WIN", color: "var(--neon-blue)", sound: 400 },
+        { name: "MEGA", color: "var(--neon-pink)", sound: 800 },
+        { name: "JACKPOT", color: "var(--gold)", sound: 1200 }
     ];
 
-    function init() {
+    function createReel() {
         const reel = document.getElementById('reel');
         reel.innerHTML = '';
-        for(let i=0; i<40; i++) {
+        for(let i=0; i<50; i++) {
             const item = items[Math.floor(Math.random() * items.length)];
             const div = document.createElement('div');
             div.className = 'slot-item';
@@ -90,70 +90,97 @@
         }
     }
 
-    function play() {
-        if(state.gems < 50) return alert("Refilling gems...");
-        state.gems -= (50 - state.rebate);
-        
-        // Rolling with upgrades
-        let roll = Math.random() * 100;
-        let cumulative = 0;
-        let winIndex = 0;
-        
-        let currentWeights = JSON.parse(JSON.stringify(items));
-        currentWeights[3].weight += state.luckBoost; // Apply Magnetism
+    function beep(freq, type, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
 
-        for(let i=0; i<currentWeights.length; i++) {
-            cumulative += currentWeights[i].weight;
-            if(roll < cumulative) { winIndex = i; break; }
+    function spawnParticles() {
+        for(let i=0; i<30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = '50%';
+            p.style.top = '50%';
+            p.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+            document.body.appendChild(p);
+            
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = 5 + Math.random() * 10;
+            let x = 0, y = 0;
+            
+            const anim = setInterval(() => {
+                x += Math.cos(angle) * velocity;
+                y += Math.sin(angle) * velocity;
+                p.style.transform = `translate(${x}px, ${y}px)`;
+                p.style.opacity -= 0.02;
+                if(p.style.opacity <= 0) { clearInterval(anim); p.remove(); }
+            }, 16);
         }
+    }
+
+    function play() {
+        if(gems < 50) return;
+        gems -= 50;
+        document.getElementById('gems').innerText = gems;
+        
+        // Sensory feedback: Start
+        document.getElementById('body').classList.add('shake');
+        beep(150, 'sawtooth', 0.2);
 
         const reel = document.getElementById('reel');
-        const finalItem = items[winIndex];
-        reel.children[35].innerText = finalItem.name;
-        reel.children[35].style.color = finalItem.color;
+        const roll = Math.random();
+        let winIdx = roll < 0.05 ? 3 : (roll < 0.15 ? 2 : (roll < 0.4 ? 1 : 0));
         
-        // Near miss hack
-        reel.children[34].innerText = "!!!JACKPOT!!!";
-        reel.children[34].style.color = "#00ff00";
-
+        // Force the reel to land on result
+        reel.children[45].innerText = items[winIdx].name;
+        reel.children[45].style.color = items[winIdx].color;
+        
         reel.style.transition = 'none';
         reel.style.top = '0px';
+        
         setTimeout(() => {
-            reel.style.transition = 'top 1.5s cubic-bezier(0.1, 0, 0.1, 1)';
-            reel.style.top = '-3500px';
+            reel.style.transition = 'top 1s cubic-bezier(0.1, 0, 0.1, 1.2)';
+            reel.style.top = '-6750px'; // 45 items * 150px
         }, 50);
 
-        setTimeout(() => finalize(winIndex), 1600);
+        setTimeout(() => {
+            document.getElementById('body').classList.remove('shake');
+            finish(winIdx);
+        }, 1100);
     }
 
-    function finalize(idx) {
-        state.xp += (20 * state.xpMult);
-        if(state.xp >= 100) {
-            state.xp = 0; state.lvl++; state.tokens++;
-            document.getElementById('msg').innerText = "LEVEL UP! +1 TOKEN";
+    function finish(idx) {
+        const item = items[idx];
+        beep(item.sound, 'square', 0.5);
+        
+        if(idx > 0) {
+            spawnParticles();
+            gems += (idx * 200);
+            xp += 34;
+        } else {
+            xp += 10;
         }
-        if(idx === 3) {
-            state.gems += 5000;
-            document.getElementById('msg').innerText = "SYSTEM OVERLOAD: JACKPOT!";
+
+        if(xp >= 100) {
+            xp = 0; lvl++;
+            beep(2000, 'sine', 1);
+            alert("LEVEL UP! LUCK INCREASED!"); // Psychological hook
         }
-        updateUI();
+
+        document.getElementById('gems').innerText = gems;
+        document.getElementById('lvl').innerText = lvl;
+        document.getElementById('xp-bar').style.width = xp + "%";
     }
 
-    function buy(id) {
-        if(id === 0 && state.tokens >= 1) { state.luckBoost += 2; state.tokens -= 1; }
-        if(id === 1 && state.tokens >= 2) { state.rebate += 10; state.tokens -= 2; }
-        if(id === 2 && state.tokens >= 1) { state.xpMult += 0.5; state.tokens -= 1; }
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('gems').innerText = Math.floor(state.gems);
-        document.getElementById('tokens').innerText = state.tokens;
-        document.getElementById('lvl').innerText = state.lvl;
-        document.getElementById('xp-fill').style.width = state.xp + "%";
-    }
-
-    init();
+    createReel();
 </script>
 </body>
 </html>
